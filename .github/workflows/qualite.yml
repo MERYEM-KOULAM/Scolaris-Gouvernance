@@ -1,0 +1,51 @@
+name: Pipeline de Gouvernance Scolaris
+
+# Ce déclencheur indique à GitHub Actions de démarrer à chaque "push" sur la branche "main"
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  audit-qualite:
+    name: Audit SonarCloud & Code
+    runs-on: ubuntu-latest # Nous simulons un serveur Linux pour le test
+
+    steps:
+    - name: 1. Récupération du code source
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Important pour que SonarCloud ait tout l'historique
+
+    - name: 2. Préparation de l'environnement Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11' # La version de Python utilisée pour Scolaris
+
+    - name: 3. Installation des inspecteurs de qualité (Radon, Pylint...)
+      run: |
+        python -m pip install --upgrade pip
+        pip install django pylint radon coverage
+
+    - name: 4. Exécution de Pylint (Vérification des conventions PEP8)
+      run: |
+        # Nous analysons les applications principales de Scolaris
+        # --exit-zero empêche le pipeline de s'arrêter même s'il trouve des erreurs de style
+        pylint academique/ scolarite/ rh/ core/ evaluation/ --exit-zero > pylint_report.txt
+
+    - name: 5. Exécution de Radon (Calcul de la Complexité Cyclomatique)
+      run: |
+        # Nous cherchons les fonctions trop complexes (note C, D, E, F)
+        radon cc academique/ scolarite/ rh/ core/ evaluation/ -a > radon_report.txt
+
+    - name: 6. Analyse SonarCloud (Le Grand Rapport)
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Fourni automatiquement par GitHub
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    # Notre fameux secret configuré plus tôt
+      with:
+        # On dit à SonarCloud où chercher notre projet
+        args: >
+          -Dsonar.projectKey=MERYEM-KOULAM_Scolaris-Gouvernance
+          -Dsonar.organization=meryem-koulam
+          -Dsonar.sources=.
+          -Dsonar.python.version=3.11
