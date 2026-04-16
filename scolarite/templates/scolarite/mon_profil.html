@@ -1,0 +1,46 @@
+{% extends 'scolarite/base_scolarite.html' %}
+
+{% block scolarite_content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow mt-4">
+            <div class="card-header bg-primary text-white text-center py-4">
+                <div class="bg-white text-primary rounded-circle d-flex justify-content-center align-items-center mx-auto mb-3" style="width: 100px; height: 100px; font-size: 3rem;">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h3 class="mb-0">{{ user.first_name }} {{ user.last_name }}</h3>
+                <p class="mb-0 opacity-75">@{{ user.username }}</p>
+            </div>
+            <div class="card-body p-4">
+                <h5 class="mb-3 text-muted border-bottom pb-2">Informations Personnelles</h5>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold text-secondary">Rôle :</div>
+                    <div class="col-sm-8"><span class="badge bg-info text-dark">Agent de Scolarité</span></div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold text-secondary">Email :</div>
+                    <div class="col-sm-8">{{ user.email }}</div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold text-secondary">Dernière connexion :</div>
+                    <div class="col-sm-8">{{ user.last_login|date:"d F Y à H:i" }}</div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold text-secondary">Date d'inscription :</div>
+                    <div class="col-sm-8">{{ user.date_joined|date:"d/m/Y" }}</div>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <a href="{% url 'password_change' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-key me-2"></i> Changer mon mot de passe
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

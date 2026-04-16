@@ -1,0 +1,111 @@
+{% extends 'academique/base_etudiant.html' %}
+
+{% block title %}Nouvelle Réclamation - Scolaris{% endblock %}
+
+{% block content %}
+<style>
+    .shadow-soft {
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.07), 0 5px 10px -5px rgba(0, 0, 0, 0.04) !important;
+    }
+    .bg-gradient-primary-soft {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    }
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+    }
+</style>
+
+<div class="container pb-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="fas fa-exclamation-circle me-2 text-warning"></i>Faire une réclamation
+            </h2>
+            <p class="text-muted">Vous avez un doute sur une note ? Contactez votre professeur.</p>
+        </div>
+        <a href="{% url 'mes_notes' %}" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="fas fa-arrow-left me-2"></i>Retour aux notes
+        </a>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-soft h-100 bg-gradient-primary-soft text-white rounded-4 overflow-hidden">
+                <div class="card-body p-4 position-relative">
+                    <i class="fas fa-file-alt position-absolute" style="right: -20px; bottom: -30px; font-size: 10rem; opacity: 0.1; transform: rotate(-15deg);"></i>
+                    
+                    <h6 class="text-white-50 text-uppercase fw-bold mb-4 ls-1">Détails de l'évaluation</h6>
+                    
+                    <div class="mb-4">
+                        
+                        <h3 class="fw-bold mb-0">{{ note.cours.nom }}</h3>
+                        <p class="text-white-50">Prof. {{ note.cours.professeur_principal.last_name }}</p>
+                    </div>
+
+                    <div class="bg-white bg-opacity-10 rounded-3 p-3 border border-white border-opacity-10 text-center mb-3">
+                        <span class="d-block text-white-50 small text-uppercase fw-bold mb-1">Votre Note</span>
+                        <div class="display-3 fw-bold">
+                            {{ note.valeur }}<span class="fs-4 text-white-50">/20</span>
+                        </div>
+                        <span class="badge bg-white text-primary fw-bold mt-2 px-3">
+                            {{ note.get_type_eval_display }}
+                        </span>
+                    </div>
+
+                    <div class="small text-white-50 text-center">
+                        <i class="far fa-calendar-alt me-1"></i> Saisie le {{ note.date_saisie|date:"d M Y" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-soft rounded-4 bg-white h-100">
+                <div class="card-body p-4 p-lg-5">
+                    
+                    <div class="alert alert-light border-warning border-start border-4 text-dark mb-4" role="alert">
+                        <div class="d-flex">
+                            <i class="fas fa-lightbulb text-warning fs-4 me-3 mt-1"></i>
+                            <div>
+                                <strong>Conseil :</strong> Soyez précis et courtois.
+                                <p class="mb-0 small text-muted">
+                                    Expliquez clairement pourquoi vous pensez qu'il y a une erreur (ex: oubli d'une question, erreur de calcul, fichier non pris en compte...).
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="message" class="form-label fw-bold text-dark">Votre message au professeur</label>
+                            <textarea 
+                                name="message" 
+                                id="message" 
+                                rows="6" 
+                                class="form-control bg-light border-0 p-3" 
+                                placeholder="Bonjour Monsieur/Madame, je me permets de vous contacter concernant..."
+                                required></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-end align-items-center gap-3">
+                            <a href="{% url 'mes_notes' %}" class="btn btn-light text-muted fw-bold rounded-pill px-4">
+                                Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary rounded-pill px-5 py-2 fw-bold shadow-sm">
+                                <i class="fas fa-paper-plane me-2"></i>Envoyer la réclamation
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

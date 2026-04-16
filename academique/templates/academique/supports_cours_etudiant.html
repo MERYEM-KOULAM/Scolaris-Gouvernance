@@ -1,0 +1,239 @@
+{% extends 'academique/base_etudiant.html' %}
+
+{% block title %}Supports de Cours - Scolaris{% endblock %}
+
+{% block content %}
+<style>
+    /* --- STYLES SPÉCIFIQUES --- */
+    .shadow-soft {
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.07), 0 5px 10px -5px rgba(0, 0, 0, 0.04) !important;
+    }
+    
+    /* En-tête du module */
+    .module-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    .module-pattern {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        opacity: 0.1;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M54.627 0l.83.828-1.415 1.415-.828-.828-.828.828-1.415-1.415.828-.828-.828-.828 1.415-1.415.828.828.828-.828 1.415 1.415-.828.828zM22.485 0l.83.828-1.415 1.415-.828-.828-.828.828-1.415-1.415.828-.828-.828-.828 1.415-1.415.828.828.828-.828 1.415 1.415-.828.828zM0 22.485l.828.83-1.415 1.415-.828-.828-.828.828L-3.658 22.485l.828-.828-.828-.828 1.415-1.415.828.828.828-.828 1.415 1.415-.828.828zM0 54.627l.828.83-1.415 1.415-.828-.828-.828.828L-3.658 54.627l.828-.828-.828-.828 1.415-1.415.828.828.828-.828 1.415 1.415-.828.828zM54.627 60l.83-.828-1.415-1.415-.828.828-.828-.828-1.415 1.415.828.828-.828.828 1.415 1.415.828-.828.828.828 1.415-1.415-.828-.828zM22.485 60l.83-.828-1.415-1.415-.828.828-.828-.828-1.415 1.415.828.828-.828.828 1.415 1.415.828-.828.828.828 1.415-1.415-.828-.828z' fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E");
+    }
+
+    /* Carte Document */
+    .doc-card {
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    .doc-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.1);
+        border-color: var(--bs-primary-border-subtle);
+    }
+    
+    /* Icône de type de fichier */
+    .file-icon {
+        width: 50px; height: 50px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 12px;
+        font-size: 1.5rem;
+    }
+    .icon-pdf { background-color: rgba(220, 53, 69, 0.1); color: #dc3545; }
+    .icon-word { background-color: rgba(13, 110, 253, 0.1); color: #0d6efd; }
+    .icon-zip { background-color: rgba(255, 193, 7, 0.1); color: #ffc107; }
+    .icon-code { background-color: rgba(32, 201, 151, 0.1); color: #20c997; }
+    .icon-default { background-color: rgba(108, 117, 125, 0.1); color: #6c757d; }
+
+    /* Filtres */
+    .nav-pills .nav-link {
+        border-radius: 50rem;
+        padding: 0.5rem 1.5rem;
+        font-weight: 600;
+        color: #6c757d;
+        background-color: white;
+        border: 1px solid #e9ecef;
+        margin-right: 0.5rem;
+        transition: all 0.2s;
+    }
+    .nav-pills .nav-link.active {
+        background-color: #667eea;
+        color: white;
+        border-color: #667eea;
+        box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);
+    }
+    .nav-pills .nav-link:hover:not(.active) {
+        background-color: #f8f9fa;
+        color: #495057;
+    }
+</style>
+
+<div class="container-fluid pb-5">
+    
+    <div class="card border-0 shadow-soft rounded-4 mb-5 module-header text-white mt-3">
+        <div class="module-pattern"></div>
+        <div class="card-body p-4 p-lg-5 position-relative">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                <div>
+                    <a href="{% url 'dashboard_etudiant' %}" class="btn btn-white btn-sm bg-white bg-opacity-25 text-white border-0 mb-3 hover-scale">
+                        <i class="fas fa-arrow-left me-2"></i>Retour au tableau de bord
+                    </a>
+                    <h1 class="fw-bold mb-2 display-6">{{ cours.nom }}</h1>
+                    <div class="d-flex align-items-center flex-wrap gap-3">
+                       
+                        <span class="text-white opacity-75">
+                            <i class="fas fa-chalkboard-teacher me-2"></i>Prof. {{ cours.professeur_principal.last_name }}
+                        </span>
+                        <span class="text-white opacity-75">
+                            <i class="far fa-clock me-2"></i>{{ cours.volume_horaire }}h
+                        </span>
+                    </div>
+                </div>
+                <div class="d-none d-lg-block">
+                    <i class="fas fa-folder-open opacity-25" style="font-size: 8rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+        <ul class="nav nav-pills mb-3 mb-md-0" id="pills-tab" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" onclick="filterSupports('all', this)">
+                    <i class="fas fa-th-large me-2"></i>Tout
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" onclick="filterSupports('COURS', this)">
+                    <i class="fas fa-book me-2"></i>Cours
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" onclick="filterSupports('TD', this)">
+                    <i class="fas fa-pen-alt me-2"></i>TD
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" onclick="filterSupports('TP', this)">
+                    <i class="fas fa-laptop-code me-2"></i>TP
+                </button>
+            </li>
+        </ul>
+        
+        <div class="text-muted small fw-bold">
+            <i class="fas fa-file-alt me-1"></i> {{ supports|length }} document(s) disponible(s)
+        </div>
+    </div>
+
+    {% if supports %}
+        <div class="row g-4" id="supportsGrid">
+            {% for support in supports %}
+                <div class="col-md-6 col-lg-4 col-xl-3 support-item" data-type="{{ support.type_support }}">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 doc-card bg-white">
+                        <div class="card-body p-4 d-flex flex-column">
+                            
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="file-icon shadow-sm 
+                                    {% if '.pdf' in support.fichier.url %}icon-pdf
+                                    {% elif '.zip' in support.fichier.url or '.rar' in support.fichier.url %}icon-zip
+                                    {% elif '.py' in support.fichier.url or '.java' in support.fichier.url %}icon-code
+                                    {% elif '.doc' in support.fichier.url or '.docx' in support.fichier.url %}icon-word
+                                    {% else %}icon-default{% endif %}">
+                                    
+                                    {% if '.pdf' in support.fichier.url %}<i class="fas fa-file-pdf"></i>
+                                    {% elif '.zip' in support.fichier.url or '.rar' in support.fichier.url %}<i class="fas fa-file-archive"></i>
+                                    {% elif '.py' in support.fichier.url or '.java' in support.fichier.url %}<i class="fas fa-code"></i>
+                                    {% elif '.doc' in support.fichier.url or '.docx' in support.fichier.url %}<i class="fas fa-file-word"></i>
+                                    {% else %}<i class="fas fa-file-alt"></i>{% endif %}
+                                </div>
+                                
+                                <span class="badge bg-light text-muted border text-uppercase" style="font-size: 0.7rem;">
+                                    {{ support.get_type_support_display }}
+                                </span>
+                            </div>
+
+                            <h6 class="card-title fw-bold text-dark mb-2">{{ support.titre }}</h6>
+                            <p class="card-text text-muted small flex-grow-1">
+                                {{ support.description|default:"Aucune description fournie."|truncatechars:80 }}
+                            </p>
+                            
+                            <div class="mt-3 pt-3 border-top border-light">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <small class="text-muted" style="font-size: 0.75rem;">
+                                        <i class="far fa-calendar me-1"></i> {{ support.date_ajout|date:"d M Y" }}
+                                    </small>
+                                </div>
+                                
+                                {% if support.fichier %}
+                                    <a href="{{ support.fichier.url }}" target="_blank" class="btn btn-primary w-100 rounded-pill fw-bold btn-sm py-2 shadow-sm">
+                                        <i class="fas fa-download me-2"></i>Télécharger
+                                    </a>
+                                {% else %}
+                                    <button class="btn btn-secondary w-100 rounded-pill btn-sm py-2 disabled">
+                                        Fichier indisponible
+                                    </button>
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div id="noResults" class="text-center py-5 d-none">
+            <i class="fas fa-search fa-3x text-muted opacity-25 mb-3"></i>
+            <h5 class="text-muted">Aucun document dans cette catégorie.</h5>
+        </div>
+
+    {% else %}
+        <div class="text-center py-5">
+            <div class="bg-light rounded-circle d-inline-flex p-4 mb-3">
+                <i class="fas fa-folder-open fa-3x text-muted opacity-50"></i>
+            </div>
+            <h4 class="text-muted fw-bold">Ce dossier est vide</h4>
+            <p class="text-muted">Le professeur n'a pas encore ajouté de supports pour ce cours.</p>
+        </div>
+    {% endif %}
+
+</div>
+
+<script>
+    function filterSupports(type, button) {
+        // 1. Gestion des boutons (Active state)
+        document.querySelectorAll('.nav-link').forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+
+        // 2. Filtrage des cartes
+        const items = document.querySelectorAll('.support-item');
+        let visibleCount = 0;
+
+        items.forEach(item => {
+            const itemType = item.getAttribute('data-type');
+            
+            if (type === 'all' || itemType === type) {
+                item.parentElement.classList.remove('d-none'); // Affiche la colonne parente
+                item.style.display = 'block'; // Sûreté
+                
+                // Petite animation d'apparition
+                item.style.opacity = '0';
+                setTimeout(() => item.style.opacity = '1', 50);
+                
+                visibleCount++;
+            } else {
+                item.parentElement.classList.add('d-none'); // Cache la colonne parente pour garder la grille propre
+                item.style.display = 'none';
+            }
+        });
+
+        // 3. Gestion du message "Aucun résultat"
+        const noResults = document.getElementById('noResults');
+        if (visibleCount === 0 && items.length > 0) {
+            noResults.classList.remove('d-none');
+        } else {
+            noResults.classList.add('d-none');
+        }
+    }
+</script>
+{% endblock %}

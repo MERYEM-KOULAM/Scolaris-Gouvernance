@@ -1,0 +1,74 @@
+{% extends 'scolarite/base_scolarite.html' %}
+
+{% block scolarite_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Annuaire des Étudiants</h1>
+    
+    <form class="d-flex" method="get">
+        <input class="form-control me-2" type="search" name="q" placeholder="Chercher un nom..." aria-label="Search" value="{{ request.GET.q|default:'' }}">
+        <button class="btn btn-outline-primary" type="submit">
+            <i class="fas fa-search"></i>
+        </button>
+    </form>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 50px;">Photo</th>
+                        <th>Nom & Prénom</th>
+                        <th>Filière</th>
+                        <th>Niveau</th>
+                        <th>Contact</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for etudiant in etudiants %}
+                    <tr>
+                        <td>
+                            {% if etudiant.photo %}
+                                <img src="{{ etudiant.photo.url }}" class="rounded-circle" width="40" height="40" style="object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center" style="width: 40px; height: 40px;">
+                                    {{ etudiant.first_name|first }}{{ etudiant.last_name|first }}
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="fw-bold">{{ etudiant.last_name|upper }} {{ etudiant.first_name }}</div>
+                            <small class="text-muted">Inscrit le : {{ etudiant.date_joined|date:"d/m/Y" }}</small>
+                        </td>
+                        <td>
+                            {% if etudiant.dossier_scolaire %}
+                                <span class="badge bg-primary">{{ etudiant.dossier_scolaire.filiere }}</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Non assigné</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ etudiant.dossier_scolaire.annee_actuelle|default:"-" }}</td>
+                        <td>
+                            <a href="mailto:{{ etudiant.email }}" class="text-decoration-none">
+                                <i class="far fa-envelope"></i> {{ etudiant.email }}
+                            </a>
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'scolarite:voir_dossier' etudiant.id %}" class="btn btn-sm btn-outline-info" title="Voir le dossier">
+    <i class="fas fa-eye"></i> Dossier
+</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4">Aucun étudiant trouvé.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

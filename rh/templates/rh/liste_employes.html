@@ -1,0 +1,156 @@
+{% extends 'rh/base_rh.html' %}
+
+{% block title %}Annuaire des Employés | Scolaris{% endblock %}
+
+{% block content %}
+<style>
+    /* Styles spécifiques Annuaire */
+    .avatar-list {
+        width: 45px; height: 45px;
+        background-color: #f1f5f9;
+        color: #9D1B36; /* Couleur RH */
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: bold; font-size: 1rem;
+        border: 2px solid white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .table-directory thead th {
+        background: #f8f9fa;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        border-bottom: 2px solid #e9ecef;
+        padding: 1rem;
+    }
+    
+    .role-badge-rh { background-color: rgba(157, 27, 54, 0.1); color: #9D1B36; border: 1px solid rgba(157, 27, 54, 0.1); }
+    .role-badge-prof { background-color: rgba(13, 110, 253, 0.1); color: #0d6efd; border: 1px solid rgba(13, 110, 253, 0.1); }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="fas fa-id-card-alt me-2 text-danger"></i>Annuaire du Personnel
+            </h2>
+            <p class="text-muted mb-0">
+                Gérez les {{ employes|length }} collaborateurs enregistrés.
+            </p>
+        </div>
+        <a href="{% url 'recruter_employe' %}" class="btn btn-rh rounded-pill px-4 py-2 fw-bold shadow-sm">
+            <i class="fas fa-user-plus me-2"></i>Nouveau Recrutement
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        
+        <div class="card-header bg-white py-3 px-4 border-bottom">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-6">
+                    <div class="input-group rounded-pill overflow-hidden border">
+                        <span class="input-group-text border-0 bg-white ps-3"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" id="employeeSearch" class="form-control border-0 shadow-none" placeholder="Rechercher par nom, email ou rôle...">
+                    </div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <button class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                        <i class="fas fa-filter me-2"></i>Filtres
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                        <i class="fas fa-download me-2"></i>Exporter
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 table-directory" id="employeeTable">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Collaborateur</th>
+                        <th>Fonction / Rôle</th>
+                        <th>Coordonnées</th>
+                        <th>Date d'entrée</th> <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employes %}
+                    <tr class="employee-row">
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                {% if emp.photo_profil %}
+                                    <img src="{{ emp.photo_profil.url }}" class="rounded-circle me-3 avatar-list" style="object-fit: cover;">
+                                {% else %}
+                                    <div class="avatar-list me-3">
+                                        {{ emp.last_name|first }}{{ emp.first_name|first }}
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <div class="fw-bold text-dark">{{ emp.last_name }} {{ emp.first_name }}</div>
+                                    <small class="text-muted">@{{ emp.username }}</small>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            {% if emp.role == 'RH' %}
+                                <span class="badge role-badge-rh rounded-pill px-3">Ressources Humaines</span>
+                            {% else %}
+                                <span class="badge role-badge-prof rounded-pill px-3">Corps Professoral</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <div class="d-flex flex-column">
+                                <span class="text-dark small mb-1"><i class="far fa-envelope me-2 text-muted"></i>{{ emp.email }}</span>
+                                <span class="text-muted small"><i class="fas fa-phone-alt me-2 text-muted"></i>{{ emp.telephone|default:"Non renseigné" }}</span>
+                            </div>
+                        </td>
+                        
+                        <td>
+                            <span class="text-muted small">{{ emp.date_joined|date:"d M Y" }}</span>
+                        </td>
+
+                        <td class="text-end pe-4">
+                            <a href="{% url 'dossier_employe' emp.id %}" class="btn btn-sm btn-outline-dark rounded-pill fw-bold shadow-sm">
+                                <i class="far fa-folder-open me-1"></i>Dossier
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="mb-3 text-muted opacity-25">
+                                <i class="fas fa-users-slash fa-3x"></i>
+                            </div>
+                            <h6 class="fw-bold text-muted">Aucun employé trouvé</h6>
+                            <p class="text-muted small">Commencez par recruter un nouveau collaborateur.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('employeeSearch').addEventListener('keyup', function() {
+        let filter = this.value.toLowerCase();
+        let rows = document.querySelectorAll('.employee-row');
+
+        rows.forEach(row => {
+            let text = row.innerText.toLowerCase();
+            if (text.includes(filter)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

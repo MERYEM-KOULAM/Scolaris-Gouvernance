@@ -1,0 +1,187 @@
+{% extends 'scolarite/base_scolarite.html' %}
+
+{% block scolarite_content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white text-center py-4">
+                <div class="bg-white text-primary rounded-circle d-flex justify-content-center align-items-center mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2.5rem;">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <h4 class="mb-0">{{ etudiant.first_name }} {{ etudiant.last_name }}</h4>
+                <p class="mb-0 opacity-75">{{ etudiant.email }}</p>
+            </div>
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase fw-bold mb-3" style="font-size: 0.8rem;">Informations Académiques</h6>
+                
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between px-0">
+                        <span>Filière</span>
+                        <span class="fw-bold text-primary">{{ etudiant.dossier_scolaire.filiere.nom|default:"Non assignée" }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between px-0">
+                        <span>Année</span>
+                        <span class="fw-bold">{{ etudiant.dossier_scolaire.annee_actuelle }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between px-0">
+                        <span>Date d'entrée</span>
+                        <span class="text-muted">{{ etudiant.dossier_scolaire.date_entree|date:"d/m/Y" }}</span>
+                    </li>
+                </ul>
+
+                <div class="d-grid gap-2 mt-4">
+                    <a href="mailto:{{ etudiant.email }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-envelope me-2"></i> Contacter
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        
+        <div class="card shadow mb-4">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Relevé de Notes</h5>
+                <button class="btn btn-sm btn-light text-success fw-bold" data-bs-toggle="modal" data-bs-target="#addNoteModal">
+                    <i class="fas fa-plus me-1"></i> Saisir une note
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Matière</th>
+                                <th class="text-center">Semestre</th>
+                                <th class="text-center">Note / 20</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for note in etudiant.notes.all %}
+                            <tr>
+                                <td class="ps-4 fw-bold">{{ note.matiere }}</td>
+                                <td class="text-center"><span class="badge bg-secondary">{{ note.semestre }}</span></td>
+                                <td class="text-center fw-bold {% if note.valeur < 10 %}text-danger{% else %}text-success{% endif %}">
+                                    {{ note.valeur }}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center py-4 text-muted">
+                                    Aucune note saisie pour l'instant.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0 text-primary"><i class="fas fa-folder-open me-2"></i>Documents Administratifs</h5>
+                <a href="{% url 'scolarite:admin_creer_document' etudiant.id %}" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addDocModal">
+                    <i class="fas fa-plus"></i> Ajouter
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for doc in documents %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
+                        <div>
+                            <div class="fw-bold">{{ doc.get_type_document_display }}</div>
+                            <small class="text-muted">Demandé le {{ doc.date_creation|date:"d/m/Y à H:i" }}</small>
+                        </div>
+                        <div>
+                            {% if doc.statut == 'DEMANDE' %}
+                                <span class="badge bg-warning text-dark">À traiter</span>
+                                <a href="{% url 'scolarite:traiter_document' doc.id %}" class="btn btn-sm btn-success ms-2">
+                                    <i class="fas fa-check"></i> Prêt
+                                </a>
+                            {% elif doc.statut == 'PRET' %}
+                                <span class="badge bg-success">Prêt à récupérer</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ doc.statut }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4 text-muted">
+                        Aucun document dans le dossier.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal fade" id="addNoteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Saisir une note prof</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'scolarite:ajouter_note' etudiant.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Matière</label>
+                        <input type="text" name="matiere" class="form-control" placeholder="Ex: Algorithmique, Java..." required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Note (/20)</label>
+                            <input type="number" step="0.01" max="20" min="0" name="valeur" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Semestre</label>
+                            <select name="semestre" class="form-select">
+                                <option value="S1">Semestre 1</option>
+                                <option value="S2">Semestre 2</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-success">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addDocModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Ajouter un document au dossier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'scolarite:admin_creer_document' etudiant.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Type de document</label>
+                        <select name="type_document" class="form-select">
+                            <option value="ATTESTATION">Attestation de scolarité</option>
+                            <option value="RELEVE">Relevé de notes</option>
+                        </select>
+                    </div>
+                    <p class="text-muted small">Ce document sera immédiatement marqué comme "PRÊT" dans l'espace étudiant.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Ajouter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

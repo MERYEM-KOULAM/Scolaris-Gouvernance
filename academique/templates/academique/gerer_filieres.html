@@ -1,0 +1,232 @@
+{% extends 'academique/base_direction.html' %}
+
+{% block title %}Gestion des Filières - Direction{% endblock %}
+
+{% block content %}
+<style>
+    /* Styles spécifiques pour les tableaux élégants */
+    .table-card {
+        border-radius: 1rem;
+        overflow: hidden;
+        border: none;
+        box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    }
+    .table thead th {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        padding: 1rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+    .table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        color: #2c3e50;
+    }
+    .avatar-circle {
+        width: 35px; height: 35px;
+        background-color: #e9ecef;
+        color: #495057;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: bold; font-size: 0.8rem;
+        margin-right: 10px;
+    }
+    
+    /* Couleurs des Cycles */
+    .badge-licence { background-color: #e3f2fd; color: #0d6efd; }
+    .badge-master { background-color: #f3e5f5; color: #9c27b0; }
+    .badge-ingenieur { background-color: #fff3e0; color: #e65100; }
+    
+    /* Recherche */
+    .search-box {
+        position: relative;
+    }
+    .search-box i {
+        position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+        color: #adb5bd;
+    }
+    .search-box input {
+        padding-left: 40px;
+        border-radius: 50px;
+        border: 1px solid #e9ecef;
+        background-color: #fff;
+        transition: all 0.3s;
+    }
+    .search-box input:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.15);
+    }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Offre de Formation</h2>
+            <p class="text-muted mb-0">Gérez les filières accréditées et leurs responsables.</p>
+        </div>
+        <button class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addFiliereModal">
+            <i class="fas fa-plus-circle me-2"></i>Nouvelle Filière
+        </button>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 bg-white h-100">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-muted small fw-bold text-uppercase mb-1">Total Filières</h6>
+                        <h3 class="mb-0 fw-bold text-dark">{{ filieres|length }}</h3>
+                    </div>
+                    <div class="bg-light rounded-circle p-3 text-primary">
+                        <i class="fas fa-graduation-cap fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card border-0 shadow-sm rounded-4 bg-white h-100 d-flex justify-content-center px-4">
+                <div class="search-box w-100">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Rechercher une filière, un département ou un responsable...">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card table-card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="filieresTable">
+                <thead>
+                    <tr>
+                        <th style="width: 35%;">Intitulé de la Filière</th>
+                        <th style="width: 15%;">Niveau / Cycle</th>
+                        <th style="width: 25%;">Département de Rattachement</th>
+                        <th style="width: 20%;">Coordonnateur</th>
+                        <th style="width: 5%;" class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in filieres %}
+                    <tr class="filiere-row">
+                        <td>
+                            <div class="fw-bold text-dark">{{ f.nom }}</div>
+                            <small class="text-muted">Code: {{ f.nom|slice:":3"|upper }}00{{ forloop.counter }}</small>
+                        </td>
+                        <td>
+                            {% if 'Master' in f.cycle.nom %}
+                                <span class="badge badge-master px-3 py-2 rounded-pill fw-bold">MASTER</span>
+                            {% elif 'Licence' in f.cycle.nom %}
+                                <span class="badge badge-licence px-3 py-2 rounded-pill fw-bold">LICENCE</span>
+                            {% elif 'Ingénieur' in f.cycle.nom or 'Ingenieur' in f.cycle.nom %}
+                                <span class="badge badge-ingenieur px-3 py-2 rounded-pill fw-bold">INGÉNIEUR</span>
+                            {% else %}
+                                <span class="badge bg-light text-dark border px-3 py-2 rounded-pill fw-bold">{{ f.cycle.nom }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center text-muted">
+                                <i class="far fa-building me-2"></i>
+                                {{ f.departement.nom }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                {% if f.responsable.photo_profil %}
+                                    <img src="{{ f.responsable.photo_profil.url }}" class="rounded-circle me-2" width="35" height="35" style="object-fit: cover;">
+                                {% else %}
+                                    <div class="avatar-circle shadow-sm">
+                                        {{ f.responsable.first_name|first|default:"?" }}{{ f.responsable.last_name|first|default:"?" }}
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <div class="fw-bold small text-dark">{{ f.responsable.get_full_name|default:"Non assigné" }}</div>
+                                    <small class="text-muted" style="font-size: 0.7rem;">{{ f.responsable.email|default:"-" }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-end">
+                            <button class="btn btn-light btn-sm text-primary rounded-circle shadow-sm hover-scale" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="text-muted opacity-50 mb-2"><i class="fas fa-inbox fa-3x"></i></div>
+                            <p class="text-muted fw-bold">Aucune filière trouvée.</p>
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addFiliereModal">Créer la première</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addFiliereModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white border-bottom-0 p-4 rounded-top-4">
+                <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-2"></i>Nouvelle Filière</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Nom de la formation</label>
+                        {{ form.nom }} </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Cycle / Niveau</label>
+                            {{ form.cycle }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Département</label>
+                            {{ form.departement }}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Coordonnateur (Prof)</label>
+                        {{ form.responsable }}
+                        <div class="form-text small"><i class="fas fa-info-circle me-1"></i>Seuls les professeurs sont listés.</div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary py-3 fw-bold rounded-pill shadow-sm">
+                            <i class="fas fa-save me-2"></i>Enregistrer la filière
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        let filter = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#filieresTable tbody tr.filiere-row');
+
+        rows.forEach(row => {
+            let text = row.innerText.toLowerCase();
+            if (text.includes(filter)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

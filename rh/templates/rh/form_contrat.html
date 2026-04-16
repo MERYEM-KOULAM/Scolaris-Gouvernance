@@ -1,0 +1,78 @@
+{% extends 'rh/base_rh.html' %}
+
+{% block title %}Nouveau Contrat | Scolaris{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-6">
+        
+        <div class="text-center mb-4">
+            <h2 class="fw-bold text-dark">Édition de Contrat</h2>
+            <p class="text-muted">Formalisez l'engagement d'un collaborateur.</p>
+        </div>
+
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div style="height: 6px; background: linear-gradient(90deg, #9D1B36, #0d6efd);"></div>
+
+            <div class="card-body p-4 p-lg-5">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                        <i class="fas fa-file-signature"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0">Termes du Contrat</h5>
+                        <small class="text-muted">Veuillez saisir les détails administratifs.</small>
+                    </div>
+                </div>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row g-3">
+                        {% for field in form %}
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="text-danger small mt-1">{{ field.errors }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="alert alert-light border d-flex align-items-start mt-4 rounded-3">
+                        <i class="fas fa-info-circle text-primary mt-1 me-3"></i>
+                        <small class="text-muted">Assurez-vous que le professeur a déjà un compte utilisateur avant de créer le contrat.</small>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-rh py-3 fw-bold rounded-pill shadow-sm">
+                            <i class="fas fa-save me-2"></i>Enregistrer et Signer
+                        </button>
+                        <a href="{% url 'dashboard_rh' %}" class="btn btn-outline-secondary rounded-pill fw-bold">
+                            Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const inputs = document.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            if (input.type !== 'checkbox') {
+                input.classList.add('form-control');
+                input.classList.add('form-control-lg'); // Champs plus grands
+                input.style.fontSize = '0.95rem';
+            }
+            if (input.tagName === 'SELECT') {
+                input.classList.add('form-select');
+                input.classList.add('form-select-lg');
+            }
+        });
+    });
+</script>
+{% endblock %}

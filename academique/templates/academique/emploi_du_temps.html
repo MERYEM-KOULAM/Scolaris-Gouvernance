@@ -1,0 +1,42 @@
+{% extends 'academique/base_prof.html' %}
+
+{% block title %}Mon Emploi du Temps{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="far fa-calendar-alt me-2"></i>Mon Emploi du Temps</h2>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered text-center align-middle">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Jour</th>
+                        <th>Horaire</th>
+                        <th>Cours</th>
+                        <th>Filière</th>
+                        <th>Salle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for seance in seances %}
+                    <tr>
+                        <td class="fw-bold bg-light">{{ seance.get_jour_display }}</td>
+                        <td>{{ seance.heure_debut|date:"H:i" }} - {{ seance.heure_fin|date:"H:i" }}</td>
+                        <td class="fw-bold text-primary">{{ seance.cours.nom }}</td>
+                        <td><span class="badge bg-secondary">{{ seance.cours.filiere.nom }}</span></td>
+                        <td class="text-success fw-bold">{{ seance.salle }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="py-4 text-muted">
+                            Aucune séance programmée par le chef de département.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

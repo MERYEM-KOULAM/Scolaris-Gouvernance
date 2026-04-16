@@ -1,0 +1,234 @@
+{% extends 'academique/base_chef.html' %}
+
+{% block title %}Tableau de Bord - Chef de Département{% endblock %}
+
+{% block content %}
+<style>
+    /* --- Styles Premium Chef --- */
+    .welcome-banner-chef {
+        background: linear-gradient(135deg, #2c3e50 0%, #4b6cb7 100%);
+        color: white;
+        border-radius: 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .pattern-overlay {
+        position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.1) 2px, transparent 2px);
+        background-size: 20px 20px;
+        opacity: 0.6;
+    }
+
+    .stat-card {
+        border: none;
+        border-radius: 1rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background: white;
+        height: 100%;
+        overflow: hidden;
+    }
+    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+
+    .icon-box-lg {
+        width: 60px; height: 60px;
+        border-radius: 1rem;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Couleurs Stats */
+    .stat-blue .icon-box-lg { background: rgba(13, 110, 253, 0.1); color: #0d6efd; }
+    .stat-purple .icon-box-lg { background: rgba(111, 66, 193, 0.1); color: #6f42c1; }
+    .stat-teal .icon-box-lg { background: rgba(32, 201, 151, 0.1); color: #20c997; }
+
+    .table-recent td { vertical-align: middle; padding: 1rem 0.75rem; }
+</style>
+
+<div class="container-fluid pb-5">
+
+    <div class="welcome-banner-chef p-4 p-lg-5 mb-4 shadow-sm">
+        <div class="pattern-overlay"></div>
+        <div class="position-relative d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <span class="badge bg-white bg-opacity-25 border border-white border-opacity-25 text-white mb-2">
+                    <i class="fas fa-university me-2"></i>Administration Pédagogique
+                </span>
+                <h1 class="fw-bold mb-2">Département {{ departement.nom }}</h1>
+                <p class="mb-0 text-white-50 fs-5">
+                    Bienvenue, M. {{ user.last_name }}. Vous pilotez l'activité de ce département.
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'gerer_cours_chef' %}" class="btn btn-light text-primary fw-bold shadow-sm px-4 py-2 rounded-pill">
+                    <i class="fas fa-plus-circle me-2"></i>Ajouter un module
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        
+        <div class="col-md-4">
+            <div class="stat-card p-4 stat-purple shadow-sm">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-muted fw-bold text-uppercase small mb-2">Offre de Formation</p>
+                        <h2 class="fw-bold text-dark mb-0">{{ nb_filieres }}</h2>
+                        <small class="text-muted">Filières accréditées</small>
+                    </div>
+                    <div class="icon-box-lg">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-top">
+                    <a href="#" class="text-decoration-none small fw-bold text-primary">
+                        Voir les détails <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="stat-card p-4 stat-blue shadow-sm">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-muted fw-bold text-uppercase small mb-2">Modules</p>
+                        <h2 class="fw-bold text-dark mb-0">{{ nb_cours }}</h2>
+                        <small class="text-muted">Cours actifs ce semestre</small>
+                    </div>
+                    <div class="icon-box-lg">
+                        <i class="fas fa-book"></i>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-top">
+                    <a href="{% url 'gerer_cours_chef' %}" class="text-decoration-none small fw-bold text-primary">
+                        Gérer les modules <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="stat-card p-4 stat-teal shadow-sm">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-muted fw-bold text-uppercase small mb-2">Corps Professoral</p>
+                        <h2 class="fw-bold text-dark mb-0">{{ nb_profs }}</h2>
+                        <small class="text-muted">Enseignants affectés</small>
+                    </div>
+                    <div class="icon-box-lg">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-top">
+                    <a href="#" class="text-decoration-none small fw-bold text-primary">
+                        Voir l'équipe <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+                <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold text-dark mb-0"><i class="fas fa-history me-2 text-muted"></i>Derniers Modules Ajoutés</h5>
+                    <a href="{% url 'gerer_cours_chef' %}" class="btn btn-sm btn-light text-primary fw-bold rounded-pill">Tout voir</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 table-recent align-middle">
+                        <thead class="bg-light text-muted small text-uppercase">
+                            <tr>
+                                <th class="ps-4">Code</th>
+                                <th>Intitulé</th>
+                                <th>Filière</th>
+                                <th>Responsable</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in derniers_cours %}
+                            <tr>
+                                <td class="ps-4 fw-bold text-primary">{{ c.code }}</td>
+                                <td class="fw-bold text-dark">{{ c.nom }}</td>
+                                <td><span class="badge bg-light text-dark border rounded-pill">{{ c.filiere.nom }}</span></td>
+                                <td>
+                                    {% if c.professeur_principal %}
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-light rounded-circle text-center me-2 border" style="width: 25px; height: 25px; line-height: 23px; font-size: 0.7rem;">
+                                                {{ c.professeur_principal.last_name|first }}
+                                            </div>
+                                            <small>{{ c.professeur_principal.last_name }}</small>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-danger small fw-bold"><i class="fas fa-exclamation-circle"></i> Non assigné</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">Aucun cours créé récemment.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            
+            <div class="card border-0 shadow-sm rounded-4 bg-white mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-dark mb-3">Pilotage Rapide</h5>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'planifier_seances_chef' %}" class="btn btn-outline-dark text-start py-3 rounded-3 border-2 fw-bold action-hover">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-dark text-white rounded p-2 me-3"><i class="far fa-calendar-alt"></i></div>
+                                <div>
+                                    <div class="small text-uppercase opacity-75">Emploi du temps</div>
+                                    <div>Planifier des séances</div>
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <a href="{% url 'gerer_cours_chef' %}" class="btn btn-outline-primary text-start py-3 rounded-3 border-2 fw-bold action-hover">
+                             <div class="d-flex align-items-center">
+                                <div class="bg-primary text-white rounded p-2 me-3"><i class="fas fa-book"></i></div>
+                                <div>
+                                    <div class="small text-uppercase opacity-75">Pédagogie</div>
+                                    <div>Gérer les cours</div>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'dashboard_prof' %}" class="btn btn-light text-start py-3 rounded-3 border fw-bold text-muted">
+                             <div class="d-flex align-items-center">
+                                <div class="bg-secondary text-white rounded p-2 me-3"><i class="fas fa-chalkboard-teacher"></i></div>
+                                <div>
+                                    <div class="small text-uppercase opacity-75">Retour</div>
+                                    <div>Mon espace Professeur</div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 bg-info bg-opacity-10 text-info">
+                <div class="card-body p-4 d-flex align-items-center">
+                    <i class="fas fa-info-circle fa-2x me-3"></i>
+                    <div>
+                        <h6 class="fw-bold mb-1">Besoin d'aide ?</h6>
+                        <p class="small mb-0 opacity-75">Contactez la Direction Générale pour modifier les filières.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

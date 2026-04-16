@@ -1,0 +1,75 @@
+{% extends 'rh/base_rh.html' %}
+
+{% block title %}Recrutement | Scolaris{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-6">
+        
+        <div class="text-center mb-4">
+            <h2 class="fw-bold text-dark">Nouveau Collaborateur</h2>
+            <p class="text-muted">Remplissez les informations pour créer un compte employé.</p>
+        </div>
+
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="card-header bg-white border-bottom-0 p-4 pb-0">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-0">Formulaire d'embauche</h5>
+                </div>
+            </div>
+            
+            <div class="card-body p-4 pt-3">
+                <form method="post" enctype="multipart/form-data" class="needs-validation">
+                    {% csrf_token %}
+                    
+                    <div class="row g-3">
+                        {% for field in form %}
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">{{ field.label }}</label>
+                            
+                            {{ field }}
+                            
+                            {% if field.help_text %}
+                                <div class="form-text small"><i class="fas fa-info-circle me-1"></i>{{ field.help_text }}</div>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-4 pt-2">
+                        <button type="submit" class="btn btn-rh py-3 fw-bold rounded-pill shadow-sm">
+                            <i class="fas fa-check-circle me-2"></i>Valider le recrutement
+                        </button>
+                        <a href="{% url 'liste_employes' %}" class="btn btn-light text-muted fw-bold rounded-pill">
+                            Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const inputs = document.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            // Ajoute la classe form-control si ce n'est pas une checkbox/radio
+            if (input.type !== 'checkbox' && input.type !== 'radio') {
+                input.classList.add('form-control');
+                input.classList.add('bg-light'); // Fond gris clair moderne
+                input.classList.add('border-0'); // Sans bordure par défaut
+            }
+            if (input.tagName === 'SELECT') {
+                input.classList.add('form-select');
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,166 @@
+{% extends 'rh/base_rh.html' %}
+
+{% block title %}Gestion des Départements | Scolaris{% endblock %}
+
+{% block content %}
+<style>
+    /* Avatar pour le chef de département */
+    .avatar-chef {
+        width: 32px; height: 32px;
+        background-color: #e9ecef;
+        color: #495057;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    
+    .dept-icon {
+        width: 40px; height: 40px;
+        background: rgba(157, 27, 54, 0.1);
+        color: #9D1B36;
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .form-sidebar {
+        position: sticky;
+        top: 20px;
+        border-top: 4px solid #9D1B36; /* Touche RH */
+    }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="row g-4">
+        
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="fw-bold text-dark mb-1">
+                        <i class="fas fa-sitemap me-2 text-danger"></i>Départements
+                    </h3>
+                    <p class="text-muted mb-0">
+                        Structure organisationnelle de l'établissement.
+                    </p>
+                </div>
+                <span class="badge bg-white text-dark border shadow-sm px-3 py-2 rounded-pill">
+                    {{ departements|length }} structures
+                </span>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light text-muted small text-uppercase">
+                            <tr>
+                                <th class="ps-4 py-3">Département</th>
+                                <th>Chef de Département</th>
+                                <th>Description</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dept in departements %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="dept-icon me-3">
+                                            <i class="fas fa-building"></i>
+                                        </div>
+                                        <div class="fw-bold text-dark">{{ dept.nom }}</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if dept.chef %}
+                                        <div class="d-flex align-items-center">
+                                            {% if dept.chef.photo_profil %}
+                                                <img src="{{ dept.chef.photo_profil.url }}" class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;">
+                                            {% else %}
+                                                <div class="avatar-chef me-2">
+                                                    {{ dept.chef.last_name|first }}
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <span class="d-block small fw-bold text-dark">Pr. {{ dept.chef.last_name }}</span>
+                                                <small class="text-muted" style="font-size: 0.75rem;">Responsable</small>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <span class="badge bg-light text-muted border rounded-pill">Non assigné</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="text-muted small">{{ dept.description|default:"-"|truncatechars:50 }}</span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-sm btn-link text-muted"><i class="fas fa-edit"></i></button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5">
+                                    <div class="text-muted opacity-50 mb-2"><i class="fas fa-cubes fa-2x"></i></div>
+                                    <span class="text-muted">Aucun département créé.</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 form-sidebar bg-white">
+                <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0">
+                    <h5 class="fw-bold text-dark mb-1">Nouveau Département</h5>
+                    <p class="text-muted small">Créez une nouvelle unité pédagogique.</p>
+                </div>
+                
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Nom du département</label>
+                            {{ form.nom }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Description</label>
+                            {{ form.description }}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Chef (Professeur)</label>
+                            {{ form.chef }}
+                            <div class="form-text small">Optionnel. Doit être un professeur.</div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-rh py-2 fw-bold rounded-pill shadow-sm">
+                                <i class="fas fa-plus-circle me-2"></i>Créer la structure
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const inputs = document.querySelectorAll('.form-sidebar input, .form-sidebar select, .form-sidebar textarea');
+        inputs.forEach(input => {
+            input.classList.add('form-control');
+            input.classList.add('bg-light');
+            input.classList.add('border-0'); // Style plus doux
+            if(input.tagName === 'SELECT') input.classList.add('form-select');
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends 'academique/base_direction.html' %}
+
+{% block title %}Mon Profil - Direction{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2 class="fw-bold mb-4 text-dark ps-3 border-start border-5 border-primary">Mon Profil Administrateur</h2>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+                <div style="height: 120px; background: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);"></div>
+                <div class="card-body text-center position-relative pt-0">
+                    <div style="margin-top: -60px;">
+                        {% if user.photo_profil %}
+                            <img src="{{ user.photo_profil.url }}" class="rounded-circle border border-4 border-white shadow" width="120" height="120" style="object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle border border-4 border-white shadow bg-white d-inline-flex align-items-center justify-content-center text-primary fw-bold fs-1" style="width: 120px; height: 120px;">
+                                {{ user.first_name|first }}{{ user.last_name|first }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <h4 class="mt-3 mb-1 fw-bold">{{ user.get_full_name }}</h4>
+                    <span class="badge bg-dark px-3 py-2 rounded-pill">Direction Générale</span>
+                    
+                    <p class="text-muted mt-3 small px-3">
+                        Compte administrateur avec privilèges de gestion pédagogique et communication.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white p-0 border-bottom-0">
+                    <ul class="nav nav-tabs nav-justified" id="myTab" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active py-3 fw-bold text-dark" id="infos-tab" data-bs-toggle="tab" data-bs-target="#infos" type="button">
+                                <i class="fas fa-user-edit me-2"></i>Informations
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link py-3 fw-bold text-dark" id="pass-tab" data-bs-toggle="tab" data-bs-target="#pass" type="button">
+                                <i class="fas fa-key me-2"></i>Mot de passe
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body p-4">
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="infos">
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <input type="hidden" name="update_profile" value="1">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted">Prénom</label>
+                                        <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted">Nom</label>
+                                        <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold text-muted">Email</label>
+                                        <input type="email" name="email" class="form-control" value="{{ user.email }}">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold text-muted">Changer la photo</label>
+                                        <input type="file" name="photo_profil" class="form-control">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 mt-4 fw-bold">Enregistrer les modifications</button>
+                            </form>
+                        </div>
+
+                        <div class="tab-pane fade" id="pass">
+                            <div class="alert alert-warning border-0 small">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Utilisez un mot de passe fort (lettres, chiffres, symboles).
+                            </div>
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="change_password" value="1">
+                                {% for field in password_form %}
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-muted">{{ field.label }}</label>
+                                        <input type="{{ field.field.widget.input_type }}" name="{{ field.name }}" class="form-control" required>
+                                        {% if field.errors %}<div class="text-danger small">{{ field.errors }}</div>{% endif %}
+                                    </div>
+                                {% endfor %}
+                                <button type="submit" class="btn btn-dark w-100 mt-3 fw-bold">Mettre à jour le mot de passe</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

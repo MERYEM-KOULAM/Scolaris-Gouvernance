@@ -1,0 +1,262 @@
+{% extends 'academique/base_etudiant.html' %}
+
+{% block title %}Mes Résultats - Scolaris{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: #f8f9fa;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<style>
+    /* --- ANIMATIONS CSS --- */
+    /* Définition de l'animation de glissement vers le haut */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translate3d(0, 30px, 0);
+        }
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    /* Classes utilitaires pour l'animation */
+    .animate-fade-up {
+        animation: fadeInUp 0.8s ease-out cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    }
+    /* Délais pour l'effet cascade */
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.3s; }
+
+    /* --- STYLES DES COMPOSANTS --- */
+    .shadow-soft {
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.07), 0 5px 10px -5px rgba(0, 0, 0, 0.04) !important;
+    }
+    
+    /* Carte Moyenne avec dégradé plus riche */
+    .card-kpi {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #8E54E9 100%);
+        background-size: 200% auto;
+        color: white;
+        transition: all 0.4s ease;
+    }
+    .card-kpi:hover {
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 15px 30px -5px rgba(102, 126, 234, 0.4) !important;
+    }
+
+    /* Tableau Interactif */
+    .table-interactive tbody tr {
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        border-left: 4px solid transparent;
+    }
+    /* Effet de "lévitation" au survol de la ligne */
+    .table-interactive tbody tr:hover {
+        background-color: #fff !important;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px -5px rgba(0,0,0,0.1);
+        border-left-color: #667eea; /* Petite barre couleur au survol */
+    }
+    
+    /* Badges de notes stylisés */
+    .grade-badge {
+        font-size: 1.15em;
+        font-weight: 800;
+        padding: 0.6em 1.2em;
+        border-radius: 12px; /* Coins moins ronds pour un look plus technique */
+        min-width: 85px;
+        display: inline-block;
+        text-align: center;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2), 0 2px 5px rgba(0,0,0,0.05);
+    }
+    /* Dégradés subtils pour les badges */
+    .grade-success {
+        background: linear-gradient(145deg, #d1e7dd, #badbcc);
+        color: #0f5132;
+    }
+    .grade-danger {
+        background: linear-gradient(145deg, #f8d7da, #f5c6cb);
+        color: #842029;
+    }
+</style>
+
+<div class="container-fluid pb-5">
+
+    <div class="row align-items-center mb-5 mt-2 animate-fade-up">
+        <div class="col-md-8">
+            <h2 class="fw-bolder text-dark mb-2 fs-1">
+                <i class="fas fa-graduation-cap me-3 text-primary p-2 bg-primary bg-opacity-10 rounded-circle"></i>Mes Résultats
+            </h2>
+            <p class="text-muted fs-5 mb-0 ps-2 ms-5 border-start border-3 ps-3">Consultez vos performances et suivez votre progression académique.</p>
+        </div>
+        
+        <div class="col-md-4 animate-fade-up delay-1">
+            <div class="card card-kpi border-0 shadow-soft rounded-4 overflow-hidden">
+                <div class="card-body p-4 d-flex align-items-center justify-content-between position-relative">
+                    <i class="fas fa-chart-line position-absolute opacity-25" style="right: -20px; bottom: -20px; font-size: 8rem; transform: rotate(-20deg); pointer-events: none;"></i>
+                    
+                    <div style="z-index: 2;">
+                        <span class="text-white-50 text-uppercase small fw-bolder ls-2 d-block mb-2">Moyenne Générale Estimée</span>
+                        <div class="d-flex align-items-baseline">
+                            <h1 class="fw-bolder mb-0 me-2 display-4" id="moyenneGenerale">0.00</h1>
+                            <span class="text-white-50 fs-4 fw-light">/ 20</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-soft rounded-4 overflow-hidden bg-white animate-fade-up delay-2">
+        <div class="card-header bg-white py-4 px-4 border-bottom border-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold text-dark d-flex align-items-center">
+                <i class="fas fa-list-ol me-2 text-primary"></i>Détail des évaluations
+            </h5>
+            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-bold">
+                {{ notes|length }} évaluation(s)
+            </span>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 table-interactive" id="notesTable">
+                <thead class="bg-light text-muted small text-uppercase fw-bolder ls-1">
+                    <tr>
+                        <th class="ps-4 py-4">Module / Matière</th>
+                        <th class="py-4">Type & Date</th>
+                        <th class="text-center py-4">Note Obtenue</th>
+                        <th class="text-center py-4">Statut</th>
+                        <th class="text-end pe-5 py-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for note in notes %}
+                    <tr class="border-bottom border-light">
+                        <td class="ps-4 py-4">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-gradient-primary-soft text-white rounded-4 p-2 me-3 d-flex align-items-center justify-content-center fw-bolder shadow-sm" style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                         <i class="fas {% cycle 'fa-code' 'fa-database' 'fa-network-wired' 'fa-laptop-code' 'fa-microchip' 'fa-brain' %} fs-4 opacity-75"></i>
+                                </div>
+                                <div>
+                                    <span class="fw-bolder text-dark d-block fs-5 mb-1">{{ note.cours.nom }}</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="py-4">
+                            <div class="d-flex flex-column">
+                                {% if note.type_eval == 'DEVOIR' %}
+                                    <span class="badge bg-info text-white mb-2 align-self-start py-2 px-3 rounded-pill">Devoir</span>
+                                {% elif note.type_eval == 'EXAMEN' %}
+                                    <span class="badge bg-danger text-white mb-2 align-self-start py-2 px-3 rounded-pill">Examen</span>
+                                {% else %}
+                                    <span class="badge bg-secondary text-white mb-2 align-self-start py-2 px-3 rounded-pill">{{ note.get_type_eval_display }}</span>
+                                {% endif %}
+                                <small class="text-muted fw-bold"><i class="far fa-calendar-alt me-1 text-primary opacity-50"></i> {{ note.date_saisie|date:"d M Y" }}</small>
+                            </div>
+                        </td>
+
+                        <td class="text-center py-4 align-middle">
+                            <div class="grade-badge {% if note.valeur >= 10 %}grade-success{% else %}grade-danger{% endif %}" data-note="{{ note.valeur }}">
+                                {{ note.valeur }}
+                            </div>
+                        </td>
+
+                        <td class="text-center py-4">
+                            {% if note.valeur >= 10 %}
+                                <div class="d-inline-flex align-items-center px-3 py-2 rounded-pill bg-success bg-opacity-10 text-success fw-bold small">
+                                    <i class="fas fa-check-circle me-2 fs-5"></i>Validé
+                                </div>
+                            {% else %}
+                                <div class="d-inline-flex align-items-center px-3 py-2 rounded-pill bg-danger bg-opacity-10 text-danger fw-bold small shake-horizontal-hover">
+                                    <i class="fas fa-times-circle me-2 fs-5"></i>Non validé
+                                </div>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-end pe-5 py-4 align-middle">
+                            <a href="{% url 'reclamation_note' note.id %}" class="btn btn-outline-secondary btn-sm rounded-pill px-4 fw-bold transition-all hover-scale text-nowrap">
+                                <i class="far fa-flag me-2"></i>Réclamer
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="py-5 animate-fade-up delay-2">
+                                <i class="fas fa-clipboard-list fa-5x text-muted opacity-25 mb-4 fa-bounce" style="--fa-animation-duration: 3s;"></i>
+                                <h4 class="text-muted fw-bold mb-3">Aucun résultat disponible</h4>
+                                <p class="text-muted mb-0">Vos notes apparaîtront ici dès leur publication par les professeurs.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="mt-5 mb-5 animate-fade-up delay-2">
+        <a href="{% url 'dashboard_etudiant' %}" class="btn btn-light bg-white border shadow-sm text-primary fw-bold rounded-pill px-4 py-2 hover-scale">
+            <i class="fas fa-arrow-left me-2"></i>Retour au tableau de bord
+        </a>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Fonction pour animer le compteur (de start à end)
+        function animateValue(obj, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                // Easing quadratique pour un effet plus naturel (rapide au début, lent à la fin)
+                const easeOutQuad = (t) => t * (2 - t);
+                const currentVal = (start + easeOutQuad(progress) * (end - start)).toFixed(2);
+                obj.innerHTML = currentVal;
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // 2. Calcul de la moyenne réelle
+        const badges = document.querySelectorAll('.grade-badge');
+        let total = 0;
+        let count = 0;
+
+        badges.forEach(badge => {
+            const val = parseFloat(badge.getAttribute('data-note').replace(',', '.'));
+            if (!isNaN(val)) {
+                total += val;
+                count++;
+            }
+        });
+
+        const moyenneElement = document.getElementById('moyenneGenerale');
+        let targetMoyenne = 0;
+
+        if (count > 0) {
+            targetMoyenne = parseFloat((total / count).toFixed(2));
+        }
+
+        // 3. Lancement de l'animation (de 0 à la moyenne cible sur 1.5 secondes)
+        if (count > 0 || targetMoyenne > 0) {
+             // Petit délai avant de lancer le compteur pour laisser l'animation CSS se finir
+             setTimeout(() => {
+                animateValue(moyenneElement, 0, targetMoyenne, 1500);
+             }, 300);
+        } else {
+             moyenneElement.innerText = "--";
+        }
+    });
+</script>
+{% endblock %}

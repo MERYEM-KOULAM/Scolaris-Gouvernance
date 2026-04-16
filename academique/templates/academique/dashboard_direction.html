@@ -1,0 +1,283 @@
+{% extends 'academique/base_direction.html' %}
+{% load static %}
+
+{% block title %}Tableau de Bord - Direction Générale{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    /* --- STYLES PREMIUIM --- */
+    .dashboard-container { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    
+    /* Bannière de Bienvenue */
+    .welcome-banner {
+        background: linear-gradient(120deg, #2c3e50 0%, #3498db 100%);
+        color: white;
+        border-radius: 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .welcome-pattern {
+        position: absolute; top: 0; right: 0; bottom: 0; left: 0; opacity: 0.1;
+        background-image: radial-gradient(#ffffff 2px, transparent 2px);
+        background-size: 30px 30px;
+    }
+
+    /* Cartes KPI (Stats) */
+    .kpi-card {
+        background: white; border: none; border-radius: 1rem;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.03);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+        position: relative; overflow: hidden;
+    }
+    .kpi-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
+    .kpi-icon-box {
+        width: 50px; height: 50px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; margin-bottom: 1rem;
+    }
+    .kpi-trend { font-size: 0.8rem; font-weight: 600; }
+    .text-success-soft { color: #2ecc71; background: rgba(46, 204, 113, 0.1); padding: 2px 8px; border-radius: 20px; }
+
+    /* Graphiques & Tableaux */
+    .chart-card { background: white; border-radius: 1rem; padding: 1.5rem; box-shadow: 0 2px 15px rgba(0,0,0,0.03); height: 100%; }
+    
+    /* Liste Annonces */
+    .announcement-item {
+        border-left: 4px solid transparent;
+        transition: all 0.2s;
+    }
+    .announcement-item:hover { background-color: #f8f9fa; border-left-color: #3498db; }
+</style>
+
+<div class="container-fluid dashboard-container pb-5">
+
+    <div class="welcome-banner p-4 p-lg-5 mb-4 shadow-sm">
+        <div class="welcome-pattern"></div>
+        <div class="position-relative d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h6 class="text-uppercase text-white-50 fw-bold mb-1 fs-7">Espace Direction</h6>
+                <h1 class="fw-bold mb-2">Bonjour, {{ user.last_name }}</h1>
+                <p class="mb-0 opacity-75">
+                    <i class="far fa-calendar-alt me-2"></i>{% now "l d F Y" %} &bull; 
+                    <span class="ms-2"><i class="fas fa-check-circle me-1"></i>Système opérationnel</span>
+                </p>
+            </div>
+            <div>
+                <a href="{% url 'gerer_annonces_direction' %}" class="btn btn-light text-primary fw-bold shadow-sm px-4 py-2 rounded-pill">
+                    <i class="fas fa-plus me-2"></i>Nouvel Avis
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-xl-3">
+            <div class="kpi-card p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted fw-bold text-uppercase small mb-2">Étudiants</p>
+                        <h2 class="fw-bold text-dark mb-0">{{ stats.nb_etudiants }}</h2>
+                    </div>
+                    <div class="kpi-icon-box bg-primary bg-opacity-10 text-primary">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 75%"></div>
+                    </div>
+                    <small class="text-muted mt-2 d-block">Inscrits cette année</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="kpi-card p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted fw-bold text-uppercase small mb-2">Professeurs</p>
+                        <h2 class="fw-bold text-dark mb-0">{{ stats.nb_profs }}</h2>
+                    </div>
+                    <div class="kpi-icon-box bg-success bg-opacity-10 text-success">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 60%"></div>
+                    </div>
+                    <small class="text-muted mt-2 d-block">Actifs ce semestre</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="kpi-card p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted fw-bold text-uppercase small mb-2">Filières</p>
+                        <h2 class="fw-bold text-dark mb-0">{{ stats.nb_filieres }}</h2>
+                    </div>
+                    <div class="kpi-icon-box bg-warning bg-opacity-10 text-warning">
+                        <i class="fas fa-sitemap"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: 45%"></div>
+                    </div>
+                    <small class="text-muted mt-2 d-block">Accréditées</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="kpi-card p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted fw-bold text-uppercase small mb-2">Annonces</p>
+                        <h2 class="fw-bold text-dark mb-0">{{ stats.nb_annonces }}</h2>
+                    </div>
+                    <div class="kpi-icon-box bg-danger bg-opacity-10 text-danger">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <span class="text-success-soft small fw-bold"><i class="fas fa-arrow-up me-1"></i>Actives</span>
+                    <small class="text-muted ms-2">Visible portail</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        
+        <div class="col-lg-8">
+            <div class="chart-card mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0 text-dark">Répartition par Niveau</h5>
+                    <button class="btn btn-sm btn-outline-light text-muted border">
+                        <i class="fas fa-download me-1"></i>Rapport
+                    </button>
+                </div>
+                <div style="height: 300px;">
+                    <canvas id="studentChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="fw-bold mb-0">Derniers Avis Publiés</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for annonce in annonces %}
+                    <div class="list-group-item p-3 announcement-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1 fw-bold text-dark">{{ annonce.titre }}</h6>
+                            <small class="text-muted">{{ annonce.date_publication|date:"d/m/Y" }}</small>
+                        </div>
+                        <p class="mb-1 text-muted small">{{ annonce.contenu|truncatechars:120 }}</p>
+                        <small>
+                            <span class="badge bg-light text-dark border">{{ annonce.get_cible_display }}</span>
+                            {% if annonce.important %}
+                                <span class="badge bg-danger ms-1">Important</span>
+                            {% endif %}
+                        </small>
+                    </div>
+                    {% empty %}
+                    <div class="p-4 text-center text-muted">Aucune annonce récente.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            
+            <div class="chart-card mb-4">
+                <h5 class="fw-bold mb-4 text-dark">Répartition RH</h5>
+                <div style="height: 250px; position: relative;">
+                    <canvas id="rhChart"></canvas>
+                </div>
+                <div class="mt-4 text-center">
+                    <small class="text-muted">Ratio Enseignants / Étudiants</small>
+                    <h4 class="fw-bold text-dark">1 : 25</h4>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 bg-primary text-white overflow-hidden">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">Administration Rapide</h5>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'gerer_filieres_direction' %}" class="btn btn-light text-primary fw-bold text-start">
+                            <i class="fas fa-plus-circle me-2"></i>Ajouter une Filière
+                        </a>
+                        <a href="/admin/core/user/add/" target="_blank" class="btn btn-outline-light fw-bold text-start">
+                            <i class="fas fa-user-plus me-2"></i>Créer un utilisateur
+                        </a>
+                        <a href="/admin/" target="_blank" class="btn btn-outline-light fw-bold text-start">
+                            <i class="fas fa-cogs me-2"></i>Configuration Système
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // --- 1. Graphique à Barres (Étudiants par niveau - Simulation) ---
+        const ctx = document.getElementById('studentChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Licence 1', 'Licence 2', 'Licence 3', 'Master 1', 'Master 2'],
+                datasets: [{
+                    label: 'Effectif Étudiants',
+                    data: [120, 90, 85, 45, 40], // Données statiques pour l'instant
+                    backgroundColor: '#3498db',
+                    borderRadius: 5,
+                    barThickness: 30
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { borderDash: [2, 4] } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // --- 2. Graphique Donut (RH) ---
+        const ctx2 = document.getElementById('rhChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: ['Étudiants', 'Professeurs', 'Staff'],
+                datasets: [{
+                    data: [{{ stats.nb_etudiants }}, {{ stats.nb_profs }}, 5], // Utilise les vraies variables Django ici
+                    backgroundColor: ['#3498db', '#2ecc71', '#f1c40f'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
+                }
+            }
+        });
+    });
+</script>
+
+{% endblock %}

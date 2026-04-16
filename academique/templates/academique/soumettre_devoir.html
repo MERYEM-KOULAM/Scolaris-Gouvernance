@@ -1,0 +1,106 @@
+{% extends 'academique/base_etudiant.html' %}
+
+{% block title %}Soumettre Devoir - Scolaris{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">
+    <i class="fas fa-file-upload me-2 text-success"></i>{{ devoir.titre }}
+</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Informations du devoir</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Cours:</strong> {{ devoir.cours.code }} - {{ devoir.cours.nom }}</p>
+                <p><strong>Description:</strong></p>
+                <p>{{ devoir.description }}</p>
+                <p class="mb-0">
+                    <i class="fas fa-clock me-2 text-danger"></i>
+                    <strong>Date limite:</strong> {{ devoir.date_limite|date:"d/m/Y à H:i" }}
+                </p>
+            </div>
+        </div>
+
+        {% if soumission.statut == 'SOUMIS' %}
+            <div class="alert alert-success" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>Déjà soumis</strong> le {{ soumission.date_soumission|date:"d/m/Y à H:i" }}
+                <br>
+                <small>Vous pouvez modifier votre soumission.</small>
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Soumettre votre devoir</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_fichier" class="form-label">
+                            <i class="fas fa-file me-1"></i>Fichier (PDF, DOC, DOCX, ZIP)
+                        </label>
+                        {{ form.fichier }}
+                        {% if form.fichier.errors %}
+                            <div class="alert alert-danger mt-2">{{ form.fichier.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted d-block mt-1">
+                            Taille maximale: 10 MB
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_commentaire" class="form-label">
+                            <i class="fas fa-comment me-1"></i>Commentaire (optionnel)
+                        </label>
+                        {{ form.commentaire }}
+                        {% if form.commentaire.errors %}
+                            <div class="alert alert-danger mt-2">{{ form.commentaire.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-upload me-1"></i>Soumettre
+                        </button>
+                        <a href="{% url 'mes_devoirs' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        {% if soumission.statut == 'SOUMIS' %}
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Dernière soumission</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <strong>Date:</strong><br>
+                        {{ soumission.date_soumission|date:"d/m/Y à H:i" }}
+                    </p>
+                    <p class="mb-2">
+                        <strong>Fichier:</strong><br>
+                        <a href="{{ soumission.fichier.url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                            <i class="fas fa-download me-1"></i>Télécharger
+                        </a>
+                    </p>
+                    <p class="mb-0">
+                        <strong>Statut:</strong><br>
+                        <span class="badge bg-info">{{ soumission.get_statut_display }}</span>
+                    </p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

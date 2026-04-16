@@ -1,0 +1,251 @@
+{% extends 'academique/base_etudiant.html' %}
+
+{% block title %}Tableau de Bord - Scolaris{% endblock %}
+
+{% block content %}
+<style>
+    /* --- STYLES PREMIUM --- */
+    .shadow-soft { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.07), 0 5px 10px -5px rgba(0, 0, 0, 0.04) !important; }
+    
+    .card-hover { transition: all 0.3s ease-in-out; border: 1px solid rgba(0,0,0,0.05); }
+    .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 35px -10px rgba(50, 50, 93, 0.15), 0 10px 20px -15px rgba(0, 0, 0, 0.1) !important; }
+
+    /* Dégradés des cartes KPI */
+    .bg-gradient-primary-soft { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; }
+    .bg-gradient-success-soft { background: linear-gradient(135deg, #2af598 0%, #009efd 100%) !important; }
+    .bg-gradient-info-soft { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important; }
+
+    /* Icônes d'arrière-plan */
+    .icon-bg-large {
+        position: absolute; right: -15px; bottom: -20px;
+        font-size: 6rem; opacity: 0.15; transform: rotate(-15deg);
+        pointer-events: none;
+    }
+
+    .course-card-top-border { height: 6px; background: linear-gradient(to right, #4e73df, #224abe); border-radius: 0.5rem 0.5rem 0 0; }
+</style>
+
+<div class="container-fluid pb-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4 ps-2 mt-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Bienvenue, {{ user.first_name }} !</h2>
+            <p class="text-muted mb-0 fs-5">
+                {{ dossier.filiere.nom }} <span class="mx-2">&bull;</span> Semestre {{ dossier.semestre_actuel|default:"1" }}
+            </p>
+        </div>
+    </div>
+
+    {% if annonces %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-soft rounded-4 overflow-hidden">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
+                    <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 40px; height: 40px;">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0">Informations de la Direction</h5>
+                        <small class="text-muted">Annonces officielles et avis importants</small>
+                    </div>
+                </div>
+                
+                <div class="list-group list-group-flush">
+                    {% for annonce in annonces %}
+                    <div class="list-group-item p-3 border-start border-4 {% if annonce.important %}border-danger bg-danger bg-opacity-10{% else %}border-primary{% endif %}">
+                        <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                            <h6 class="mb-0 fw-bold text-dark">
+                                {% if annonce.important %}<span class="badge bg-danger me-2 shadow-sm">URGENT</span>{% endif %}
+                                {{ annonce.titre }}
+                            </h6>
+                            <small class="text-muted ms-2"><i class="far fa-clock me-1"></i>{{ annonce.date_publication|date:"d M" }}</small>
+                        </div>
+                        <p class="mb-0 text-dark opacity-75 small mt-1">
+                            {{ annonce.contenu|truncatechars:150 }} 
+                            {% if annonce.contenu|length > 150 %}
+                                <a href="#" class="text-primary fw-bold ms-1" data-bs-toggle="modal" data-bs-target="#annonceModal{{ annonce.id }}">Lire la suite</a>
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="modal fade" id="annonceModal{{ annonce.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content rounded-4 border-0 shadow-lg">
+                                <div class="modal-header {% if annonce.important %}bg-danger text-white{% else %}bg-primary text-white{% endif %}">
+                                    <h5 class="modal-title fw-bold">{{ annonce.titre }}</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body p-4">
+                                    <div class="d-flex align-items-center mb-3 text-muted small bg-light p-2 rounded">
+                                        <i class="far fa-calendar-alt me-2"></i>Publié le {{ annonce.date_publication }}
+                                        <span class="mx-2">&bull;</span>
+                                        <i class="fas fa-user-tie me-2"></i>Par la Direction
+                                    </div>
+                                    <p class="lead fs-6 text-dark" style="white-space: pre-line;">{{ annonce.contenu }}</p>
+                                </div>
+                                <div class="modal-footer border-0">
+                                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Fermer</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-soft h-100 bg-gradient-primary-soft text-white overflow-hidden position-relative rounded-4 card-hover">
+                <div class="card-body p-4">
+                    <h6 class="text-white-50 text-uppercase mb-3 fw-bold small">Devoirs à rendre</h6>
+                    <div class="d-flex align-items-center position-relative" style="z-index: 2;">
+                        <h1 class="display-4 fw-bold mb-0 me-3">{{ devoirs_actifs|length }}</h1>
+                        <i class="fas fa-clock fa-2x text-white-50"></i>
+                    </div>
+                    <i class="fas fa-tasks icon-bg-large"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-soft h-100 bg-gradient-success-soft text-white overflow-hidden position-relative rounded-4 card-hover">
+                <div class="card-body p-4">
+                    <h6 class="text-white-50 text-uppercase mb-3 fw-bold small">Dernières Notes</h6>
+                     <div class="d-flex align-items-center position-relative" style="z-index: 2;">
+                        <h1 class="display-4 fw-bold mb-0 me-3">{{ notes_recentes|length }}</h1>
+                        <i class="fas fa-check-circle fa-2x text-white-50"></i>
+                    </div>
+                    <i class="fas fa-chart-line icon-bg-large"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-soft h-100 bg-gradient-info-soft text-white overflow-hidden position-relative rounded-4 card-hover">
+                <div class="card-body p-4">
+                    <h6 class="text-white-50 text-uppercase mb-3 fw-bold small">Documents Admin.</h6>
+                     <div class="d-flex align-items-center position-relative" style="z-index: 2;">
+                        <h1 class="display-4 fw-bold mb-0 me-3">{{ documents|length }}</h1>
+                         <i class="fas fa-file-export fa-2x text-white-50"></i>
+                    </div>
+                    <i class="fas fa-folder-open icon-bg-large"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4 ps-2 mt-5">
+        <h4 class="fw-bold text-dark mb-0"><i class="fas fa-book-reader me-2 text-primary"></i>Mes Cours</h4>
+        <a href="{% url 'emploi_temps_etudiant' %}" class="btn btn-outline-primary rounded-pill px-4">
+            <i class="fas fa-calendar-alt me-2"></i>Emploi du temps
+        </a>
+    </div>
+
+    {% if mes_cours %}
+        <div class="row g-4 mb-5">
+            {% for cours in mes_cours %}
+                <div class="col-md-6 col-lg-4 col-xl-3">
+                    <div class="card h-100 border-0 shadow-soft card-hover rounded-4 overflow-hidden bg-white">
+                        <div class="course-card-top-border"></div>
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <small class="text-muted fw-bold"><i class="far fa-clock me-1"></i> {{ cours.volume_horaire }}h</small>
+                            </div>
+                            <h5 class="card-title fw-bold text-dark mb-3">{{ cours.nom }}</h5>
+                            <div class="d-flex align-items-center text-muted small mb-4">
+                                <i class="fas fa-chalkboard-teacher me-2 text-primary"></i>
+                                Prof. {{ cours.professeur_principal.last_name|default:"Non assigné" }}
+                            </div>
+                            <a href="{% url 'supports_cours_etudiant' %}?cours={{ cours.id }}" class="btn btn-light text-primary fw-bold w-100 rounded-pill py-2 stretched-link border">
+                                Accéder au module
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-light border-0 shadow-soft text-center py-5 mb-5 rounded-4">
+            <i class="fas fa-folder-open fa-4x text-muted opacity-25 mb-3"></i>
+            <h4 class="fw-bold text-muted">Aucun cours assigné.</h4>
+        </div>
+    {% endif %}
+
+    <div class="row g-4 mt-2">
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-soft h-100 rounded-4 overflow-hidden bg-white">
+                <div class="card-header bg-white py-4 px-4 border-0 d-flex justify-content-between align-items-center">
+                     <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-stopwatch text-warning me-2"></i>À faire bientôt</h5>
+                    <a href="{% url 'mes_devoirs' %}" class="btn btn-sm btn-light text-primary rounded-pill px-3">Tout voir</a>
+                </div>
+                <div class="list-group list-group-flush p-3">
+                    {% for devoir in devoirs_actifs %}
+                        <div class="list-group-item border-0 mb-2 rounded-3 bg-light p-3 card-hover">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                     <div class="bg-white p-3 rounded-circle me-3 text-warning shadow-sm">
+                                        <i class="fas fa-file-signature"></i>
+                                     </div>
+                                    <div>
+                                        <h6 class="mb-1 fw-bold text-dark">{{ devoir.titre }}</h6>
+                                        <small class="text-muted">{{ devoir.cours.nom }}</small>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-danger mb-2">{{ devoir.date_limite|date:"d M" }}</span><br>
+                                    <a href="{% url 'soumettre_devoir' devoir.id %}" class="btn btn-sm btn-primary rounded-pill px-3 py-1" style="font-size: 0.8rem;">Déposer</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-5"><p class="text-muted mb-0">Rien à signaler !</p></div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-soft h-100 rounded-4 overflow-hidden bg-white">
+                 <div class="card-header bg-white py-4 px-4 border-0 d-flex justify-content-between align-items-center">
+                     <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-award text-success me-2"></i>Derniers Résultats</h5>
+                    <a href="{% url 'mes_notes' %}" class="btn btn-sm btn-light text-primary rounded-pill px-3">Toutes mes notes</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 table-hover">
+                            <thead class="bg-light text-muted small text-uppercase">
+                                <tr>
+                                    <th class="ps-4 py-3">Matière</th>
+                                    <th class="py-3">Éval.</th>
+                                    <th class="text-end pe-4 py-3">Note</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for note in notes_recentes %}
+                                    <tr>
+                                        <td class="ps-4 py-3 fw-bold">{{ note.cours.code }}</td>
+                                        <td class="py-3"><span class="badge bg-light text-dark border">{{ note.type_eval }}</span></td>
+                                        <td class="text-end pe-4 py-3">
+                                            {% if note.valeur >= 10 %}
+                                                <span class="fw-bold text-success fs-5">{{ note.valeur }}</span>
+                                            {% else %}
+                                                <span class="fw-bold text-danger fs-5">{{ note.valeur }}</span>
+                                            {% endif %}
+                                            <span class="text-muted small">/20</span>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="3" class="text-center py-5 text-muted">Pas encore de notes.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

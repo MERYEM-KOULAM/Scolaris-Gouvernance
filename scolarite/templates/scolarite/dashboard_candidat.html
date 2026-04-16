@@ -1,0 +1,84 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-user-clock me-2"></i>Mon Espace Candidat</h2>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Déconnexion</button>
+                </form>
+            </div>
+
+            {% if demande %}
+                <div class="card shadow-lg border-0">
+                    <div class="card-header py-4 text-center text-white 
+                        {% if demande.statut == 'ACCEPTEE' %}bg-success
+                        {% elif demande.statut == 'REFUSEE' %}bg-danger
+                        {% else %}bg-warning text-dark{% endif %}">
+                        
+                        <h3 class="mb-0">
+                            {% if demande.statut == 'ACCEPTEE' %}
+                                <i class="fas fa-check-circle me-2"></i>Candidature Acceptée !
+                            {% elif demande.statut == 'REFUSEE' %}
+                                <i class="fas fa-times-circle me-2"></i>Candidature Non Retenue
+                            {% else %}
+                                <i class="fas fa-hourglass-half me-2"></i>Dossier en cours d'examen
+                            {% endif %}
+                        </h3>
+                    </div>
+
+                    <div class="card-body p-5">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <small class="text-muted text-uppercase">Candidat</small>
+                                <h5 class="fw-bold">{{ user.first_name }} {{ user.last_name }}</h5>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted text-uppercase">Filière demandée</small>
+                                <h5 class="fw-bold text-primary">{{ demande.filiere_souhaitee.nom }}</h5>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="mt-4 text-center">
+                            {% if demande.statut == 'ACCEPTEE' %}
+                                <p class="lead text-success">
+                                    Félicitations ! Votre profil a retenu notre attention.
+                                </p>
+                                <div class="alert alert-success">
+                                    Veuillez vous présenter au service scolarité muni de vos pièces d'identité pour finaliser votre inscription administrative.
+                                </div>
+                            
+                            {% elif demande.statut == 'REFUSEE' %}
+                                <p class="text-muted">
+                                    Après étude attentive de votre dossier, nous avons le regret de vous informer que votre candidature n'a pas été retenue pour cette session.
+                                </p>
+                            
+                            {% else %}
+                                <p class="lead text-muted">
+                                    Votre dossier est actuellement entre les mains du jury d'admission.
+                                </p>
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-info-circle me-2"></i> Vous recevrez une notification dès que la décision aura été prise. Merci de patienter.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer text-muted text-center small">
+                        Dossier créé le {{ demande.date_demande|date:"d/m/Y" }}
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-danger">
+                    Aucune demande d'inscription trouvée pour ce compte.
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}

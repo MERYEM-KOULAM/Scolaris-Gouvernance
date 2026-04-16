@@ -1,0 +1,168 @@
+{% extends 'academique/base_prof.html' %}
+
+{% block title %}Tableau de Bord - Espace Enseignant{% endblock %}
+
+{% block content %}
+<style>
+    /* --- STYLES MODERNES (COPIÉS DU DASHBOARD ÉTUDIANT) --- */
+    .shadow-soft { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.07), 0 5px 10px -5px rgba(0, 0, 0, 0.04) !important; }
+    
+    .card-hover { transition: all 0.3s ease-in-out; border: 1px solid rgba(0,0,0,0.05); }
+    .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 35px -10px rgba(50, 50, 93, 0.15), 0 10px 20px -15px rgba(0, 0, 0, 0.1) !important; }
+
+    /* Dégradés Spécifiques Professeurs (Teal / Bleu / Orange) */
+    .bg-gradient-prof-1 { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+    .bg-gradient-prof-2 { background: linear-gradient(135deg, #4568dc 0%, #b06ab3 100%); }
+    .bg-gradient-prof-3 { background: linear-gradient(135deg, #ff9966 0%, #ff5e62 100%); }
+
+    /* Décoration Icônes */
+    .icon-bg-large {
+        position: absolute; right: -15px; bottom: -20px;
+        font-size: 6rem; opacity: 0.15; transform: rotate(-15deg);
+        pointer-events: none;
+    }
+    
+    .course-border-top { height: 5px; background: linear-gradient(to right, #11998e, #38ef7d); }
+</style>
+
+<div class="container-fluid pb-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4 ps-2 mt-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Espace Enseignant</h2>
+            <p class="text-muted mb-0 fs-5">Bienvenue, Professeur {{ user.last_name }}.</p>
+        </div>
+        <div class="d-flex gap-2">
+            {% if est_chef %}
+            <a href="{% url 'dashboard_chef' %}" class="btn btn-dark rounded-pill shadow-sm fw-bold px-4">
+                <i class="fas fa-user-tie me-2"></i>Espace Chef de Dép.
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if annonces %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-soft rounded-4 overflow-hidden">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
+                    <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 40px; height: 40px;">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0">Communication Direction</h5>
+                        <small class="text-muted">Messages officiels pour le corps professoral</small>
+                    </div>
+                </div>
+                
+                <div class="list-group list-group-flush">
+                    {% for annonce in annonces %}
+                    <div class="list-group-item p-3 border-start border-4 {% if annonce.important %}border-danger bg-danger bg-opacity-10{% else %}border-warning{% endif %}">
+                        <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                            <h6 class="mb-0 fw-bold text-dark">
+                                {% if annonce.important %}<span class="badge bg-danger me-2 shadow-sm">URGENT</span>{% endif %}
+                                {{ annonce.titre }}
+                            </h6>
+                            <small class="text-muted ms-2"><i class="far fa-clock me-1"></i>{{ annonce.date_publication|date:"d M" }}</small>
+                        </div>
+                        <p class="mb-0 text-dark opacity-75 small mt-1">
+                            {{ annonce.contenu|truncatechars:150 }} 
+                        </p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-soft h-100 bg-gradient-prof-1 text-white overflow-hidden position-relative rounded-4 card-hover">
+                <div class="card-body p-4">
+                    <h6 class="text-white-50 text-uppercase mb-3 fw-bold small">Modules Enseignés</h6>
+                    <div class="d-flex align-items-center position-relative" style="z-index: 2;">
+                        <h1 class="display-4 fw-bold mb-0 me-3">{{ cours.count }}</h1>
+                        <i class="fas fa-book-reader fa-2x text-white-50"></i>
+                    </div>
+                    <i class="fas fa-chalkboard icon-bg-large"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card border-0 shadow-soft h-100 bg-gradient-prof-2 text-white overflow-hidden position-relative rounded-4 card-hover">
+                <div class="card-body p-4">
+                    <h6 class="text-white-50 text-uppercase mb-3 fw-bold small">Prochain Cours</h6>
+                    <div class="position-relative" style="z-index: 2;">
+                        <h3 class="fw-bold mb-1">Aujourd'hui</h3>
+                        <p class="mb-0 text-white-50">Consultez votre emploi du temps</p>
+                    </div>
+                    <i class="far fa-calendar-check icon-bg-large"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-soft h-100 bg-gradient-prof-3 text-white overflow-hidden position-relative rounded-4 card-hover">
+                <div class="card-body p-4">
+                    <h6 class="text-white-50 text-uppercase mb-3 fw-bold small">Suivi Pédagogique</h6>
+                    <div class="d-flex align-items-center position-relative" style="z-index: 2;">
+                        <h3 class="fw-bold mb-0 me-3">Gestion</h3>
+                        <small class="text-white-50">Notes & Supports</small>
+                    </div>
+                    <i class="fas fa-tasks icon-bg-large"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4 ps-2">
+        <h4 class="fw-bold text-dark mb-0">
+            <i class="fas fa-chalkboard-teacher me-2 text-success"></i>Vos Enseignements
+        </h4>
+        <span class="badge bg-light text-dark border">{{ cours.count }} cours assignés</span>
+    </div>
+
+    <div class="row g-4">
+        {% for c in cours %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-soft card-hover rounded-4 overflow-hidden bg-white">
+                <div class="course-border-top"></div>
+                
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge bg-light text-primary border fw-bold">{{ c.code }}</span>
+                        <small class="text-muted fw-bold"><i class="far fa-clock me-1"></i> {{ c.volume_horaire }}h</small>
+                    </div>
+                    
+                    <h5 class="card-title fw-bold text-dark mb-2">{{ c.nom }}</h5>
+                    <p class="text-muted small mb-3"><i class="fas fa-graduation-cap me-2"></i>{{ c.filiere.nom }}</p>
+                    
+                    <div class="progress mb-4" style="height: 6px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 25%"></div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'saisie_notes' c.id %}" class="btn btn-primary btn-sm rounded-pill fw-bold shadow-sm">
+                            <i class="fas fa-edit me-2"></i>Saisir les Notes
+                        </a>
+                        <a href="{% url 'gerer_supports' c.id %}" class="btn btn-outline-dark btn-sm rounded-pill fw-bold">
+                            <i class="fas fa-file-upload me-2"></i>Gérer Supports
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-light border-0 shadow-soft text-center py-5 rounded-4">
+                <i class="fas fa-folder-open fa-4x text-muted opacity-25 mb-3"></i>
+                <h4 class="fw-bold text-muted">Aucun cours assigné</h4>
+                <p class="text-muted mb-0">Si vous pensez qu'il s'agit d'une erreur, contactez votre Chef de Département.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

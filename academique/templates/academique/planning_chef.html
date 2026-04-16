@@ -1,0 +1,184 @@
+{% extends 'academique/base_chef.html' %}
+
+{% block title %}Planification - Chef de Département{% endblock %}
+
+{% block content %}
+<style>
+    /* --- STYLES AGENDA --- */
+    .timeline-card {
+        border-left: 4px solid transparent;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .timeline-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+
+    /* Couleurs par jour pour repère visuel */
+    .day-LUNDI { border-left-color: #0d6efd; }      /* Bleu */
+    .day-MARDI { border-left-color: #198754; }      /* Vert */
+    .day-MERCREDI { border-left-color: #ffc107; }   /* Jaune */
+    .day-JEUDI { border-left-color: #fd7e14; }      /* Orange */
+    .day-VENDREDI { border-left-color: #dc3545; }   /* Rouge */
+    .day-SAMEDI { border-left-color: #6f42c1; }     /* Violet */
+
+    .badge-time {
+        background-color: #f8f9fa;
+        color: #495057;
+        font-family: 'Consolas', monospace;
+        font-weight: bold;
+        border: 1px solid #dee2e6;
+    }
+
+    .form-sidebar {
+        position: sticky;
+        top: 20px;
+        z-index: 100;
+    }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="row g-4">
+        
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="fw-bold text-dark mb-1">
+                        <i class="far fa-calendar-alt me-2 text-primary"></i>Emploi du Temps Global
+                    </h3>
+                    <p class="text-muted mb-0">
+                        Planifiez les séances pour l'ensemble du département.
+                    </p>
+                </div>
+                <div class="bg-white px-3 py-2 rounded-pill shadow-sm border">
+                    <span class="fw-bold text-dark">{{ seances|length }}</span> <span class="text-muted small">séances planifiées</span>
+                </div>
+            </div>
+
+            <div class="d-flex flex-column gap-3">
+                {% for seance in seances %}
+                <div class="card border-0 shadow-sm rounded-3 timeline-card day-{{ seance.jour }}">
+                    <div class="card-body p-3">
+                        <div class="row align-items-center">
+                            
+                            <div class="col-md-3 border-end">
+                                <span class="badge bg-light text-dark border mb-1 w-100 text-uppercase fw-bold">
+                                    {{ seance.get_jour_display }}
+                                </span>
+                                <div class="badge-time rounded px-2 py-1 text-center w-100">
+                                    {{ seance.heure_debut|time:"H:i" }} - {{ seance.heure_fin|time:"H:i" }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-5">
+                                <h6 class="fw-bold text-dark mb-1">{{ seance.cours.nom }}</h6>
+                                <div class="small text-muted">
+                                    <i class="fas fa-graduation-cap me-1"></i>{{ seance.cours.filiere.nom }}
+                                    <span class="mx-1">&bull;</span>
+                                    Prof. {{ seance.cours.professeur_principal.last_name|default:"?" }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                                <div class="d-inline-flex align-items-center bg-light rounded-pill px-3 py-1 border me-2">
+                                    <i class="fas fa-door-open text-muted me-2"></i>
+                                    <span class="fw-bold text-dark">{{ seance.salle }}</span>
+                                </div>
+                                <button class="btn btn-sm btn-link text-danger p-0" title="Supprimer (Optionnel)">
+                                    <i class="far fa-trash-alt"></i>
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5 bg-white rounded-4 shadow-sm border border-light">
+                    <div class="mb-3 text-muted opacity-25">
+                        <i class="far fa-calendar-times fa-4x"></i>
+                    </div>
+                    <h5 class="fw-bold text-muted">Emploi du temps vide</h5>
+                    <p class="text-muted small">Utilisez le formulaire à droite pour ajouter la première séance.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-lg rounded-4 bg-dark text-white form-sidebar overflow-hidden">
+                <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: rgba(255,255,255,0.05); border-radius: 50%;"></div>
+                
+                <div class="card-header bg-transparent border-0 p-4 pb-0 position-relative" style="z-index: 2;">
+                    <h5 class="fw-bold mb-1"><i class="fas fa-plus-circle me-2"></i>Nouvelle Séance</h5>
+                    <p class="text-white-50 small mb-0">Remplissez les créneaux horaires.</p>
+                </div>
+
+                <div class="card-body p-4 position-relative" style="z-index: 2;">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-white-50 text-uppercase">Module / Cours</label>
+                            {{ form.cours }} </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-white-50 text-uppercase">Jour de la semaine</label>
+                            {{ form.jour }}
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-white-50 text-uppercase">Début</label>
+                                <input type="time" name="heure_debut" class="form-control" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-white-50 text-uppercase">Fin</label>
+                                <input type="time" name="heure_fin" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-white-50 text-uppercase">Salle / Amphi</label>
+                            <div class="input-group">
+                                <span class="input-group-text border-0"><i class="fas fa-map-marker-alt"></i></span>
+                                {{ form.salle }}
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary py-3 fw-bold rounded-pill shadow-sm">
+                                <i class="far fa-calendar-check me-2"></i>Ajouter au planning
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 mt-3 bg-white">
+                <div class="card-body p-3">
+                    <small class="text-uppercase fw-bold text-muted mb-2 d-block" style="font-size: 0.7rem;">Code Couleur</small>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-primary text-white">Lun</span>
+                        <span class="badge bg-success text-white">Mar</span>
+                        <span class="badge bg-warning text-dark">Mer</span>
+                        <span class="badge bg-danger text-white">Ven</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Cibler tous les inputs et selects du formulaire
+        const inputs = document.querySelectorAll('.form-sidebar input:not([type="time"]), .form-sidebar select');
+        inputs.forEach(input => {
+            input.classList.add('form-control');
+            if(input.tagName === 'SELECT') input.classList.add('form-select');
+        });
+    });
+</script>
+{% endblock %}

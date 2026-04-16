@@ -1,0 +1,138 @@
+{% extends 'academique/base_etudiant.html' %}
+
+{% block title %}Mes Travaux - Scolaris{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2 class="mb-4 text-dark">
+        <i class="fas fa-tasks me-2 text-primary"></i>Mes Devoirs & Travaux
+    </h2>
+
+    {% if tous_les_travaux %}
+        <div class="row">
+            {% for item in tous_les_travaux %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card shadow-sm h-100 border-0 border-start border-4 {% if item.type == 'DEVOIR' %}border-primary{% else %}border-info{% endif %}">
+                        <div class="card-body d-flex flex-column">
+                            
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge {% if item.type == 'DEVOIR' %}bg-primary{% else %}bg-info text-dark{% endif %} mb-2">
+                                    {% if item.type == 'DEVOIR' %}Devoir{% else %}{{ item.support.get_type_support_display }}{% endif %}
+                                </span>
+                                {% if item.soumission.note %}
+                                    <span class="badge bg-success" title="Note disponible">{{ item.soumission.note }}/20</span>
+                                {% endif %}
+                            </div>
+
+                            <h5 class="card-title fw-bold text-dark">
+                                {% if item.type == 'DEVOIR' %}
+                                    {{ item.devoir.titre }}
+                                {% else %}
+                                    {{ item.support.titre }}
+                                {% endif %}
+                            </h5>
+
+                            <p class="card-text text-muted mb-3 small">
+                                <i class="fas fa-book me-1"></i>
+                                {% if item.type == 'DEVOIR' %}
+                                    {{ item.devoir.cours.nom }}
+                                {% else %}
+                                    {{ item.support.cours.nom }}
+                                {% endif %}
+                            </p>
+
+                            <div class="mb-3">
+                                {% if item.type == 'DEVOIR' %}
+                                    <small class="text-danger fw-bold">
+                                        <i class="far fa-clock me-1"></i>
+                                        À rendre avant le : {{ item.devoir.date_limite|date:"d M Y à H:i" }}
+                                    </small>
+                                {% else %}
+                                    <small class="text-muted">
+                                        <i class="far fa-calendar-alt me-1"></i>
+                                        Publié le : {{ item.support.date_ajout|date:"d M Y" }}
+                                    </small>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                {% if item.type == 'DEVOIR' and item.devoir.support_cours.fichier %}
+                                    <a href="{{ item.devoir.support_cours.fichier.url }}" target="_blank" class="btn btn-sm btn-outline-secondary w-100">
+                                        <i class="fas fa-download me-2"></i>Télécharger le sujet
+                                    </a>
+                                {% elif item.type == 'TDTP' and item.support.fichier %}
+                                    <a href="{{ item.support.fichier.url }}" target="_blank" class="btn btn-sm btn-outline-secondary w-100">
+                                        <i class="fas fa-download me-2"></i>Télécharger le support
+                                    </a>
+                                {% endif %}
+                            </div>
+
+                            <div class="mt-auto">
+                                {% if item.soumission %}
+                                    <div class="alert alert-success py-2 px-3 mb-3 small" role="alert">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-check-circle fa-lg me-2"></i>
+                                            <div>
+                                                <strong>Travail rendu</strong><br>
+                                                Le {{ item.soumission.date_soumission|date:"d/m/Y à H:i" }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-grid">
+                                        {% if item.type == 'DEVOIR' %}
+                                            <a href="{% url 'soumettre_devoir' item.devoir.id %}" class="btn btn-success">
+                                                <i class="fas fa-eye me-2"></i>Voir ma copie
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'soumettre_tdtp' item.support.id %}" class="btn btn-success">
+                                                <i class="fas fa-eye me-2"></i>Voir ma réponse
+                                            </a>
+                                        {% endif %}
+                                    </div>
+
+                                {% else %}
+                                    <div class="alert alert-light border border-warning text-warning py-2 px-3 mb-3 small" role="alert">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-exclamation-circle fa-lg me-2"></i>
+                                            <div>
+                                                <strong>Non soumis</strong><br>
+                                                En attente de votre dépôt
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-grid">
+                                        {% if item.type == 'DEVOIR' %}
+                                            <a href="{% url 'soumettre_devoir' item.devoir.id %}" class="btn btn-primary">
+                                                <i class="fas fa-upload me-2"></i>Déposer le devoir
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'soumettre_tdtp' item.support.id %}" class="btn btn-info text-white">
+                                                <i class="fas fa-paper-plane me-2"></i>Répondre au TP
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-light text-center py-5 shadow-sm border rounded">
+            <i class="fas fa-mug-hot fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">Tout est calme ici.</h4>
+            <p class="text-muted">Aucun travail à rendre pour le moment.</p>
+        </div>
+    {% endif %}
+    
+    <div class="mt-4 mb-5">
+        <a href="{% url 'dashboard_etudiant' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Retour au tableau de bord
+        </a>
+    </div>
+</div>
+{% endblock %}

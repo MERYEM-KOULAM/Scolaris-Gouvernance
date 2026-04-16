@@ -1,0 +1,151 @@
+{% extends 'academique/base_etudiant.html' %}
+
+{% block title %}Soumettre un TD/TP - Scolaris{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">
+    <i class="fas fa-file-upload me-2 text-success"></i>Soumettre une Réponse
+</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Détails du {{ support.get_type_support_display }}</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    <strong>Cours:</strong> {{ support.cours.code }} - {{ support.cours.nom }}
+                </p>
+                <p>
+                    <strong>Titre:</strong> {{ support.titre }}
+                </p>
+                <p>
+                    <strong>Type:</strong> 
+                    <span class="badge bg-secondary">{{ support.get_type_support_display }}</span>
+                </p>
+                <p>
+                    <strong>Support:</strong>
+                    <a href="{{ support.fichier.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-download me-1"></i>Télécharger
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        {% if soumission.statut != 'EN_ATTENTE' %}
+            <div class="alert alert-info mb-4">
+                <h6 class="alert-heading">
+                    <i class="fas fa-info-circle me-2"></i>Votre soumission
+                </h6>
+                <p class="mb-2">
+                    <strong>Statut:</strong>
+                    <span class="badge bg-{% if soumission.statut == 'SOUMIS' %}info{% elif soumission.statut == 'CORRIGE' %}warning{% elif soumission.statut == 'NOTE' %}success{% endif %}">
+                        {{ soumission.get_statut_display }}
+                    </span>
+                </p>
+                <p class="mb-2">
+                    <strong>Fichier soumis:</strong>
+                    <a href="{{ soumission.fichier.url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                        <i class="fas fa-download me-1"></i>Télécharger
+                    </a>
+                </p>
+                <p class="mb-2">
+                    <strong>Format:</strong> {{ soumission.get_format_fichier_display }}
+                </p>
+                <p class="mb-0">
+                    <strong>Soumis le:</strong> {{ soumission.date_soumission|date:"d/m/Y à H:i" }}
+                </p>
+
+                {% if soumission.note %}
+                    <hr>
+                    <p class="mb-2">
+                        <strong>Note:</strong> <span style="font-size: 1.3rem; color: #28a745;">{{ soumission.note }}/20</span>
+                    </p>
+                {% endif %}
+
+                {% if soumission.feedback_professeur %}
+                    <hr>
+                    <p>
+                        <strong>Feedback du professeur:</strong>
+                    </p>
+                    <div class="alert alert-light border">
+                        {{ soumission.feedback_professeur }}
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-cloud-upload-alt me-2"></i>
+                    {% if soumission.statut == 'EN_ATTENTE' %}
+                        Soumettre votre réponse
+                    {% else %}
+                        Modifier votre réponse
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="format_fichier" class="form-label">
+                            <strong>Format du fichier</strong>
+                            <span class="text-danger">*</span>
+                        </label>
+                        <select name="format_fichier" id="format_fichier" class="form-select" required>
+                            {% for value, label in formats %}
+                                <option value="{{ value }}" {% if soumission.format_fichier == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">
+                            Sélectionnez le format de votre fichier
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="fichier" class="form-label">
+                            <strong>Fichier</strong>
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="file" name="fichier" id="fichier" class="form-control" required accept=".pdf,.xlsx,.xls,.docx,.doc">
+                        <small class="form-text text-muted">
+                            Formats acceptés: PDF, Excel (.xlsx, .xls), Word (.docx, .doc)
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="commentaire" class="form-label">
+                            <strong>Commentaire (optionnel)</strong>
+                        </label>
+                        <textarea name="commentaire" id="commentaire" class="form-control" rows="4" placeholder="Ajoutez un commentaire...">{{ soumission.commentaire }}</textarea>
+                        <small class="form-text text-muted">
+                            Vous pouvez ajouter des notes ou des explications
+                        </small>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i>Soumettre
+                        </button>
+                        <a href="{% url 'mes_devoirs' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="alert alert-warning mt-4">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Important:</strong> Vous pouvez modifier votre réponse en la réutilisant le même formulaire. Le fichier précédent sera remplacé.
+        </div>
+    </div>
+</div>
+
+{% endblock %}

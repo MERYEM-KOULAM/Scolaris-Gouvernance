@@ -1,0 +1,248 @@
+{% extends 'academique/base_prof.html' %}
+
+{% block title %}Devoirs Soumis - Scolaris{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">
+    <i class="fas fa-inbox me-2 text-primary"></i>Devoirs & TD/TP Soumis
+</h1>
+
+<!-- Statistiques -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Total</h6>
+                <h3 class="text-primary">{{ statistiques.total }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title text-muted">En Attente</h6>
+                <h3 class="text-warning">{{ statistiques.en_attente }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Soumises</h6>
+                <h3 class="text-info">{{ statistiques.soumises }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Notées</h6>
+                <h3 class="text-success">{{ statistiques.notees }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtres</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="type" class="form-label">Type</label>
+                <select name="type" id="type" class="form-select">
+                    <option value="tous" {% if filtre_type == 'tous' %}selected{% endif %}>Tous</option>
+                    <option value="devoirs" {% if filtre_type == 'devoirs' %}selected{% endif %}>Devoirs</option>
+                    <option value="tdtp" {% if filtre_type == 'tdtp' %}selected{% endif %}>TD/TP</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="cours" class="form-label">Cours</label>
+                <select name="cours" id="cours" class="form-select">
+                    <option value="">-- Tous les cours --</option>
+                    {% for cours in mes_cours %}
+                        <option value="{{ cours.id }}" {% if filtre_cours == cours.id|stringformat:"s" %}selected{% endif %}>
+                            {{ cours.code }} - {{ cours.nom }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="statut" class="form-label">Statut</label>
+                <select name="statut" id="statut" class="form-select">
+                    <option value="">-- Tous les statuts --</option>
+                    <option value="EN_ATTENTE" {% if filtre_statut == 'EN_ATTENTE' %}selected{% endif %}>En Attente</option>
+                    <option value="SOUMIS" {% if filtre_statut == 'SOUMIS' %}selected{% endif %}>Soumis</option>
+                    <option value="CORRIGE" {% if filtre_statut == 'CORRIGE' %}selected{% endif %}>Corrigé</option>
+                    <option value="NOTE" {% if filtre_statut == 'NOTE' %}selected{% endif %}>Noté</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search me-1"></i>Filtrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Liste des soumissions -->
+{% if toutes_soumissions %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Étudiant</th>
+                    <th>Travail</th>
+                    <th>Cours</th>
+                    <th>Type</th>
+                    <th>Date Soumission</th>
+                    <th>Statut</th>
+                    <th>Note</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for soumission in toutes_soumissions %}
+                    <tr>
+                        <td>
+                            <strong>{{ soumission.etudiant.get_full_name }}</strong>
+                            <br>
+                            <small class="text-muted">{{ soumission.etudiant.email }}</small>
+                        </td>
+                        <td>
+                            {% if soumission|add:'' == 'SoumissionDevoir object' or 'devoir' in soumission|stringformat:"s" %}
+                                {{ soumission.devoir.titre }}
+                            {% else %}
+                                {{ soumission.support_cours.titre }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if soumission.devoir %}
+                                {{ soumission.devoir.cours.code }}<br>
+                                <small class="text-muted">{{ soumission.devoir.cours.nom }}</small>
+                            {% elif soumission.support_cours %}
+                                {{ soumission.support_cours.cours.code }}<br>
+                                <small class="text-muted">{{ soumission.support_cours.cours.nom }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if soumission.devoir %}
+                                <span class="badge bg-primary">Devoir</span>
+                            {% elif soumission.support_cours %}
+                                <span class="badge bg-{% if soumission.support_cours.type_support == 'TD' %}info{% else %}danger{% endif %}">
+                                    {{ soumission.support_cours.get_type_support_display }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small>{{ soumission.date_soumission|date:"d/m/Y H:i" }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-{% if soumission.statut == 'EN_ATTENTE' %}warning{% elif soumission.statut == 'SOUMIS' %}info{% elif soumission.statut == 'CORRIGE' %}secondary{% else %}success{% endif %}">
+                                {{ soumission.get_statut_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if soumission.note %}
+                                <strong class="text-success">{{ soumission.note }}/20</strong>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                {% if soumission.fichier %}
+                                    <a href="{{ soumission.fichier.url }}" target="_blank" class="btn btn-outline-primary" title="Télécharger">
+                                          <i class="fas fa-download"></i>
+                                    </a>
+                                {% else %}
+                                    <button class="btn btn-outline-secondary" disabled title="Aucun fichier">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                {% endif %}
+
+                                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#evalModal{{ soumission.id }}" title="Évaluer">
+                                   <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Modal d'évaluation -->
+                    <div class="modal fade" id="evalModal{{ soumission.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header bg-primary text-white">
+                                    <h5 class="modal-title">Évaluer la soumission</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form method="post" action="{% url 'evaluer_soumission' soumission.id %}">
+                                    <div class="modal-body">
+                                        {% csrf_token %}
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Étudiant:</strong></label>
+                                            <p>{{ soumission.etudiant.get_full_name }}</p>
+                                        </div>
+
+                                        {% if soumission.devoir %}
+                                            <div class="mb-3">
+                                                <label class="form-label"><strong>Devoir:</strong></label>
+                                                <p>{{ soumission.devoir.titre }}</p>
+                                            </div>
+                                        {% elif soumission.support_cours %}
+                                            <div class="mb-3">
+                                                <label class="form-label"><strong>{{ soumission.support_cours.get_type_support_display }}:</strong></label>
+                                                <p>{{ soumission.support_cours.titre }}</p>
+                                            </div>
+                                        {% endif %}
+
+                                        <div class="mb-3">
+                                            <label for="note{{ soumission.id }}" class="form-label"><strong>Note (/20)</strong></label>
+                                            <input type="number" name="note" id="note{{ soumission.id }}" class="form-control" min="0" max="20" step="0.5" value="{{ soumission.note|default:'' }}" required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="feedback{{ soumission.id }}" class="form-label"><strong>Feedback/Commentaires</strong></label>
+                                            <textarea name="feedback_professeur" id="feedback{{ soumission.id }}" class="form-control" rows="5">{{ soumission.feedback_professeur }}</textarea>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="statut{{ soumission.id }}" class="form-label"><strong>Statut</strong></label>
+                                            <select name="statut" id="statut{{ soumission.id }}" class="form-select" required>
+                                                <option value="SOUMIS" {% if soumission.statut == 'SOUMIS' %}selected{% endif %}>Soumis</option>
+                                                <option value="CORRIGE" {% if soumission.statut == 'CORRIGE' %}selected{% endif %}>Corrigé</option>
+                                                <option value="NOTE" {% if soumission.statut == 'NOTE' %}selected{% endif %}>Noté</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save me-1"></i>Enregistrer
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-info" role="alert">
+        <i class="fas fa-info-circle me-2"></i>
+        Aucune soumission trouvée selon les critères de filtrage.
+    </div>
+{% endif %}
+
+<div class="mt-4">
+    <a href="{% url 'dashboard_prof' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>Retour
+    </a>
+</div>
+
+{% endblock %}

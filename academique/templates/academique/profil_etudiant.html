@@ -1,0 +1,218 @@
+{% extends 'academique/base_etudiant.html' %}
+
+{% block title %}Mon Profil - Scolaris{% endblock %}
+
+{% block content %}
+<style>
+    /* --- Styles Personnalisés --- */
+    .shadow-soft { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.07), 0 5px 10px -5px rgba(0, 0, 0, 0.04) !important; }
+    
+    .profile-header-bg {
+        height: 150px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 1rem 1rem 0 0;
+    }
+    
+    .profile-avatar-container {
+        margin-top: -75px;
+        position: relative;
+    }
+    
+    .profile-avatar {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border: 5px solid white;
+        background-color: #fff;
+    }
+    
+    /* Style des onglets */
+    .nav-pills .nav-link {
+        color: #6c757d;
+        font-weight: 600;
+        padding: 0.8rem 1.5rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+    }
+    .nav-pills .nav-link.active {
+        background-color: #667eea;
+        color: white;
+        box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);
+    }
+    .nav-pills .nav-link:hover:not(.active) {
+        background-color: #f8f9fa;
+        color: #495057;
+    }
+
+    /* Champs de formulaire */
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+    }
+</style>
+
+<div class="container-fluid pb-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-5 mt-3 ps-2">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="fas fa-id-card me-2 text-primary"></i>Mon Profil
+            </h2>
+            <p class="text-muted fs-5 mb-0">Gérez vos informations personnelles et votre sécurité.</p>
+        </div>
+        <a href="{% url 'dashboard_etudiant' %}" class="btn btn-outline-secondary rounded-pill px-4 hover-scale">
+            <i class="fas fa-arrow-left me-2"></i>Retour
+        </a>
+    </div>
+
+    <div class="row g-4">
+        
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-soft rounded-4 h-100 bg-white">
+                <div class="profile-header-bg"></div>
+                <div class="card-body text-center pt-0 px-4 pb-4">
+                    
+                    <div class="profile-avatar-container mb-3">
+                        {% if user.photo_profil %}
+                            <img src="{{ user.photo_profil.url }}" alt="Avatar" class="profile-avatar rounded-circle shadow-sm">
+                        {% else %}
+                            <div class="profile-avatar rounded-circle shadow-sm d-flex align-items-center justify-content-center mx-auto text-primary display-4 fw-bold bg-light">
+                                {{ user.first_name|first }}{{ user.last_name|first }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <h4 class="fw-bold text-dark mb-1">{{ user.first_name }} {{ user.last_name }}</h4>
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill px-3 py-2 mb-4">
+                        {{ user.role|title }}
+                    </span>
+
+                    <div class="text-start bg-light p-4 rounded-4">
+                        <h6 class="text-uppercase text-muted small fw-bold mb-3 border-bottom pb-2">Infos Académiques</h6>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">CNE :</span>
+                            <span class="fw-bold text-dark">{{ dossier.cne|default:"Non renseigné" }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Filière :</span>
+                            <span class="fw-bold text-dark">{{ dossier.filiere.nom }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Niveau :</span>
+                            <span class="fw-bold text-dark">{{ dossier.filiere.cycle.nom }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Semestre :</span>
+                            <span class="fw-bold text-dark">S{{ dossier.semestre_actuel }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-soft rounded-4 bg-white h-100 overflow-hidden">
+                <div class="card-header bg-white border-bottom border-light p-4">
+                    <ul class="nav nav-pills card-header-pills" id="profilTab" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active" id="infos-tab" data-bs-toggle="tab" data-bs-target="#infos" type="button" role="tab">
+                                <i class="far fa-user me-2"></i>Mes Informations
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab">
+                                <i class="fas fa-lock me-2"></i>Sécurité & Mot de passe
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card-body p-4 p-lg-5">
+                    <div class="tab-content" id="profilTabContent">
+                        
+                        <div class="tab-pane fade show active" id="infos" role="tabpanel">
+                            <h5 class="fw-bold text-dark mb-4">Modifier mes coordonnées</h5>
+                            
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <input type="hidden" name="update_profile" value="1">
+                                
+                                <div class="row g-4 mb-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">Prénom</label>
+                                        <input type="text" name="first_name" class="form-control bg-light border-0 p-3" value="{{ user_form.first_name.value|default:'' }}" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">Nom</label>
+                                        <input type="text" name="last_name" class="form-control bg-light border-0 p-3" value="{{ user_form.last_name.value|default:'' }}" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">Adresse Email</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-0"><i class="fas fa-envelope text-muted"></i></span>
+                                            <input type="email" name="email" class="form-control bg-light border-0 p-3" value="{{ user_form.email.value|default:'' }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">Photo de profil</label>
+                                        <input type="file" name="photo_profil" class="form-control bg-light border-0 p-3">
+                                        <small class="text-muted">Format JPG ou PNG. Max 2Mo.</small>
+                                    </div>
+                                </div>
+
+                                <div class="text-end">
+                                    <button type="submit" class="btn btn-primary rounded-pill px-5 py-2 fw-bold shadow-sm">
+                                        <i class="fas fa-save me-2"></i>Enregistrer les modifications
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="tab-pane fade" id="security" role="tabpanel">
+                            <h5 class="fw-bold text-dark mb-4">Changer mon mot de passe</h5>
+                            
+                            <div class="alert alert-light border-warning border-start border-4 text-dark mb-4">
+                                <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                <strong>Attention :</strong> Après le changement, vous devrez utiliser votre nouveau mot de passe lors de la prochaine connexion.
+                            </div>
+
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="change_password" value="1">
+                                
+                                {% for field in password_form %}
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">{{ field.label }}</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-0"><i class="fas fa-key text-muted"></i></span>
+                                            <input type="{{ field.field.widget.input_type }}" 
+                                                   name="{{ field.name }}" 
+                                                   class="form-control bg-light border-0 p-3" 
+                                                   {% if field.field.required %}required{% endif %}>
+                                        </div>
+                                        {% if field.help_text %}
+                                            <small class="text-muted d-block mt-1">{{ field.help_text|safe }}</small>
+                                        {% endif %}
+                                        {% for error in field.errors %}
+                                            <small class="text-danger fw-bold"><i class="fas fa-times me-1"></i>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endfor %}
+
+                                <div class="text-end mt-4">
+                                    <button type="submit" class="btn btn-warning text-dark rounded-pill px-5 py-2 fw-bold shadow-sm">
+                                        <i class="fas fa-check-circle me-2"></i>Mettre à jour le mot de passe
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

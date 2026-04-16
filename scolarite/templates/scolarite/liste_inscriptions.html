@@ -1,0 +1,69 @@
+{% extends 'scolarite/base_scolarite.html' %}
+
+{% block scolarite_content %}
+<h2 class="mt-4 mb-4">Gestion des Inscriptions</h2>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+<div class="card shadow">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0"><i class="fas fa-user-clock"></i> Demandes en attente</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Candidat</th>
+                        <th>Filière demandée</th>
+                        <th>Date</th>
+                        <th>Relevés de notes</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for demande in demandes %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold">{{ demande.candidat.get_full_name }}</div>
+                            <small class="text-muted">{{ demande.candidat.email }}</small>
+                        </td>
+                        <td><span class="badge bg-info text-dark">{{ demande.filiere_souhaitee }}</span></td>
+                        <td>{{ demande.date_demande|date:"d/m/Y" }}</td>
+                        <td>
+                            {% if demande.notes_precedentes %}
+                                <a href="{{ demande.notes_precedentes.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-file-pdf"></i> Voir PDF
+                                </a>
+                            {% else %}
+                                <span class="text-muted">Aucun fichier</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'scolarite:traiter_inscription' demande.id 'accepter' %}" 
+                               class="btn btn-success btn-sm"
+                               onclick="return confirm('Confirmer l\'inscription de cet étudiant ?');">
+                                <i class="fas fa-check"></i> Accepter
+                            </a>
+                            <a href="{% url 'scolarite:traiter_inscription' demande.id 'refuser' %}" 
+                               class="btn btn-danger btn-sm"
+                               onclick="return confirm('Refuser cette demande ?');">
+                                <i class="fas fa-times"></i> Refuser
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4">Aucune demande en attente pour le moment.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

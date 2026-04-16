@@ -1,0 +1,170 @@
+{% extends 'academique/base_prof.html' %}
+
+{% block title %}Mon Profil - Espace Enseignant{% endblock %}
+
+{% block content %}
+<style>
+    /* --- Styles Spécifiques Profil --- */
+    .profile-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%); /* Dégradé Prof */
+        height: 150px;
+        border-radius: 1rem 1rem 0 0;
+        position: relative; /* IMPORTANT : Permet de positionner l'avatar par rapport à ce bloc */
+    }
+    .profile-header.chef {
+        background: linear-gradient(135deg, #141E30 0%, #243B55 100%); /* Dégradé Chef */
+    }
+    
+    .profile-avatar-container {
+        position: absolute;
+        bottom: -65px; /* On le fait dépasser de moitié vers le bas */
+        left: 50%;
+        transform: translateX(-50%); /* On le centre parfaitement */
+        z-index: 10;
+    }
+    
+    .profile-avatar {
+        width: 130px; height: 130px;
+        object-fit: cover;
+        border: 5px solid white;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        background-color: white;
+    }
+    
+    .nav-pills .nav-link.active { background-color: #4ca1af; }
+    .chef .nav-pills .nav-link.active { background-color: #2c3e50; }
+</style>
+
+<div class="container py-4">
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4">
+                
+                <div class="profile-header {% if user.departement_set.exists %}chef{% endif %}">
+                    <div class="profile-avatar-container">
+                        {% if user.photo_profil %}
+                            <img src="{{ user.photo_profil.url }}" class="rounded-circle profile-avatar">
+                        {% else %}
+                            <div class="rounded-circle profile-avatar d-flex align-items-center justify-content-center text-secondary fw-bold display-4">
+                                {{ user.first_name|first }}{{ user.last_name|first }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card-body pt-0 text-center">
+                    
+                    <div style="height: 70px;"></div>
+                    
+                    <h3 class="fw-bold text-dark mb-1">{{ user.get_full_name }}</h3>
+                    
+                    {% if user.departement_set.exists %}
+                        <span class="badge bg-dark px-3 py-2 rounded-pill shadow-sm mb-3">
+                            <i class="fas fa-user-tie me-2"></i>Chef de Département
+                        </span>
+                    {% else %}
+                        <span class="badge bg-info text-dark px-3 py-2 rounded-pill shadow-sm mb-3">
+                            <i class="fas fa-chalkboard-teacher me-2"></i>Professeur
+                        </span>
+                    {% endif %}
+                    
+                    <p class="text-muted small mb-4">{{ user.email }}</p>
+
+                    <ul class="nav nav-pills nav-fill mb-4 p-1 bg-light rounded-pill" id="pills-tab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active rounded-pill fw-bold" id="pills-info-tab" data-bs-toggle="pill" data-bs-target="#pills-info" type="button">
+                                <i class="far fa-id-card me-2"></i>Informations
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill fw-bold" id="pills-secu-tab" data-bs-toggle="pill" data-bs-target="#pills-secu" type="button">
+                                <i class="fas fa-lock me-2"></i>Sécurité
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content text-start p-2" id="pills-tabContent">
+                        
+                        <div class="tab-pane fade show active" id="pills-info">
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <input type="hidden" name="update_profile" value="1">
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Prénom</label>
+                                        <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Nom</label>
+                                        <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Email Institutionnel</label>
+                                        <input type="email" name="email" class="form-control" value="{{ user.email }}">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Photo de Profil</label>
+                                        <input type="file" name="photo_profil" class="form-control">
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid mt-4">
+                                    <button type="submit" class="btn btn-primary rounded-pill fw-bold py-2 shadow-sm">
+                                        <i class="fas fa-save me-2"></i>Enregistrer
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="tab-pane fade" id="pills-secu">
+                            <div class="alert alert-warning border-0 d-flex align-items-center" role="alert">
+                                <i class="fas fa-shield-alt fa-2x me-3"></i>
+                                <div>
+                                    <h6 class="alert-heading fw-bold mb-0">Sécurité</h6>
+                                    <small>Utilisez un mot de passe fort.</small>
+                                </div>
+                            </div>
+                            
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="change_password" value="1">
+                                
+                                {% for field in password_form %}
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">{{ field.label }}</label>
+                                        <input type="{{ field.field.widget.input_type }}" name="{{ field.name }}" class="form-control">
+                                        {% if field.errors %}<div class="text-danger small">{{ field.errors }}</div>{% endif %}
+                                    </div>
+                                {% endfor %}
+                                
+                                <div class="d-grid mt-4">
+                                    <button type="submit" class="btn btn-dark rounded-pill fw-bold py-2 shadow-sm">
+                                        <i class="fas fa-key me-2"></i>Mettre à jour le mot de passe
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center">
+                {% if user.departement_set.exists %}
+                    <a href="{% url 'dashboard_chef' %}" class="btn btn-link text-muted text-decoration-none">
+                        <i class="fas fa-arrow-left me-2"></i>Retour au tableau de bord Chef
+                    </a>
+                {% else %}
+                    <a href="{% url 'dashboard_prof' %}" class="btn btn-link text-muted text-decoration-none">
+                        <i class="fas fa-arrow-left me-2"></i>Retour au tableau de bord
+                    </a>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
