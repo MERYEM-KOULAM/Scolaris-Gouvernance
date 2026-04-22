@@ -65,7 +65,7 @@ def saisir_notes(request, cours_id):
                         defaults={'valeur': valeur_input, 'auteur_saisie': request.user}
                     )
                 else:
-                    # Suppression si champ vide (C'est ici que votre suppression fonctionne)
+                    # Suppression si champ vide 
                     Note.objects.filter(etudiant=etudiant, cours=cours, type_eval=type_eval).delete()
 
             traiter_note('CC', f'note_cc_{etudiant.id}')

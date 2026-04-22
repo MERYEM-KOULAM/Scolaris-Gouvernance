@@ -37,7 +37,12 @@ jobs:
         # Nous cherchons les fonctions trop complexes (note C, D, E, F)
         radon cc academique/ scolarite/ rh/ core/ evaluation/ -a > radon_report.txt
 
-    - name: 6. Analyse SonarCloud (Le Grand Rapport)
+    - name: 6. Tests + Coverage
+      run: |
+        coverage run manage.py test
+        coverage xml
+
+    - name: 7. Analyse SonarCloud (Le Grand Rapport)
       uses: SonarSource/sonarcloud-github-action@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Fourni automatiquement par GitHub
@@ -49,3 +54,4 @@ jobs:
           -Dsonar.organization=meryem-koulam
           -Dsonar.sources=.
           -Dsonar.python.version=3.11
+          -Dsonar.python.coverage.reportPaths=coverage.xml
