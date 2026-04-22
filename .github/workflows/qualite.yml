@@ -43,7 +43,11 @@ jobs:
         coverage xml
         ls -R
 
-    - name: 7. Analyse SonarCloud (Le Grand Rapport)
+    - name: 7. Run MyPy
+      run: |
+        mypy academique core rh scolarite evaluation --ignore-missing-imports --exclude migrations
+
+    - name: 8. Analyse SonarCloud (Le Grand Rapport)
       uses: SonarSource/sonarcloud-github-action@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Fourni automatiquement par GitHub
