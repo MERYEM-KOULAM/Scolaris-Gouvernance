@@ -39,8 +39,9 @@ jobs:
 
     - name: 6. Tests + Coverage
       run: |
-        coverage run manage.py test
+        coverage run --source=. manage.py test
         coverage xml
+        ls -R
 
     - name: 7. Analyse SonarCloud (Le Grand Rapport)
       uses: SonarSource/sonarcloud-github-action@master
@@ -55,3 +56,4 @@ jobs:
           -Dsonar.sources=.
           -Dsonar.python.version=3.11
           -Dsonar.python.coverage.reportPaths=coverage.xml
+          -Dsonar.coverage.exclusions=**/migrations/**,**/tests.py
