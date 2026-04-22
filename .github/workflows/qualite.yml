@@ -24,7 +24,7 @@ jobs:
     - name: 3. Installation des inspecteurs de qualité (Radon, Pylint...)
       run: |
         python -m pip install --upgrade pip
-        pip install django pylint radon coverage
+        pip install -r requirements.txt
 
     - name: 4. Exécution de Pylint (Vérification des conventions PEP8)
       run: |
