@@ -1,3 +1,4 @@
+# Test de l'analyse SonarCloud sur une PR
 from django.contrib import admin
 from .models import Cycle, Filiere, Cours, Seance, Devoir, SoumissionDevoir, SupportCours, SoumissionTDTP
 
