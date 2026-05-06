@@ -4,8 +4,58 @@ from django.contrib.auth.decorators import login_required
 from .models import Cours
 from scolarite.models import DossierEtudiant
 from evaluation.models import Note
+"""
+@login_required
+def saisir_notes(request, cours_id):
+    cours = get_object_or_404(Cours, id=cours_id, professeur_principal=request.user)
+    dossiers = DossierEtudiant.objects.filter(filiere=cours.filiere)
+    etudiants = [d.etudiant for d in dossiers]
 
+    def traiter_note(etudiant, type_eval, champ):
+        valeur = request.POST.get(champ)
 
+        if not valeur:
+            Note.objects.filter(etudiant=etudiant,cours=cours,
+                                type_eval=type_eval).delete()
+            return
+
+        valeur = valeur.replace(',', '.')
+        Note.objects.update_or_create(etudiant=etudiant,cours=cours,
+            type_eval=type_eval,defaults={
+                'valeur': valeur,
+                'auteur_saisie': request.user
+            }
+        )
+
+    if request.method == 'POST':
+        types_notes = ['CC', 'TP', 'EXAM']
+
+        for etudiant in etudiants:
+            for type_eval in types_notes:
+                champ = f"note_{type_eval.lower()}_{etudiant.id}"
+                traiter_note(etudiant, type_eval, champ)
+
+        messages.success(request, "Les notes ont été mises à jour.")
+        return redirect('saisie_notes', cours_id=cours.id)
+    s
+    mapping = {'CC': 'cc', 'TP': 'tp', 'EXAM': 'exam'}
+    notes_data = {}
+
+    for n in Note.objects.filter(cours=cours):
+        notes_data.setdefault(n.etudiant.id, {'cc': '','tp': '','exam': ''})
+
+        key = mapping.get(n.type_eval)
+        if key:
+            notes_data[n.etudiant.id][key] = str(n.valeur)
+
+    liste_etudiants_notes = []
+    for etud in etudiants:
+        notes = notes_data.get(etud.id, {'cc': '', 'tp': '', 'exam': ''})
+        liste_etudiants_notes.append((etud, notes))
+
+    context = {'cours': cours, 'liste_donnees': liste_etudiants_notes}
+    return render(request, 'academique/saisie_notes.html', context)
+"""
 @login_required
 def saisir_notes(request, cours_id):
     cours = get_object_or_404(Cours, id=cours_id, professeur_principal=request.user)
@@ -66,3 +116,5 @@ def preparer_affichage_notes(cours, etudiants):
         (etud, notes_data.get(etud.id, {'cc': '', 'tp': '', 'exam': ''}))
         for etud in etudiants
     ]
+
+
