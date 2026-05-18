@@ -1,3 +1,4 @@
+# Test de l'analyse SonarCloud sur une PR
 from django.apps import AppConfig
 
 
